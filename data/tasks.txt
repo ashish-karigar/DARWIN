@@ -1,0 +1,8 @@
+1. Define architecture and safety boundaries - in-progress
+2. Record a small Qwen baseline for comparison - pending
+3. Integrate Groq GPT-OSS-120B - done
+4. Build the LangGraph supervisor and specialist agents - in-progress
+5. Integrate Fish Audio - done
+6. Productionize and measure RAG - in-progress
+7. Add Gmail, calendar, Slack, iMessage, and Mac-control tools - pending
+8. Add confirmations, security, logging, and end-to-end tests - pending

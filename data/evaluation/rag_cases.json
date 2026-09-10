@@ -1,0 +1,98 @@
+[
+  {
+    "id": "creator",
+    "query": "Who created Project DARWIN?",
+    "expected_terms": ["Ashish"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "name_expansion",
+    "query": "What does DARWIN stand for?",
+    "expected_terms": ["Distributed Agentic Reasoning and Workflow Intelligence Network"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "primary_model",
+    "query": "What is DARWIN's primary reasoning model?",
+    "expected_terms": ["GPT-OSS-120B", "Groq"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "fallback_model",
+    "query": "What model does DARWIN use when the primary model is unavailable?",
+    "expected_terms": ["Qwen3 14B", "Ollama"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "orchestration",
+    "query": "What manages DARWIN agent orchestration?",
+    "expected_terms": ["LangGraph"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "memory",
+    "query": "What provides persistent conversation memory?",
+    "expected_terms": ["SQLite"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "speech_recognition",
+    "query": "What does DARWIN use for speech recognition?",
+    "expected_terms": ["Faster Whisper"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "vector_database",
+    "query": "Where is DARWIN's unstructured knowledge stored?",
+    "expected_terms": ["ChromaDB"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "text_to_speech",
+    "query": "Which service gives DARWIN its speaking voice?",
+    "expected_terms": ["Fish Audio S2.1"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "local_voice_fallback",
+    "query": "What is the local fallback for text to speech?",
+    "expected_terms": ["pyttsx3"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "local_first_identity",
+    "query": "What kind of application is Project DARWIN?",
+    "expected_terms": ["local-first", "voice assistant"],
+    "expected_no_answer": false
+  },
+  {
+    "id": "unknown_private_fact",
+    "query": "What is Ashish's birthday?",
+    "expected_terms": [],
+    "expected_no_answer": true
+  },
+  {
+    "id": "unknown_favorite_color",
+    "query": "What is Ashish's favorite color?",
+    "expected_terms": [],
+    "expected_no_answer": true
+  },
+  {
+    "id": "unknown_email",
+    "query": "What is Ashish's email address?",
+    "expected_terms": [],
+    "expected_no_answer": true
+  },
+  {
+    "id": "unknown_launch_date",
+    "query": "On what date was Project DARWIN launched?",
+    "expected_terms": [],
+    "expected_no_answer": true
+  },
+  {
+    "id": "unknown_music_preference",
+    "query": "What is Ashish's favorite song?",
+    "expected_terms": [],
+    "expected_no_answer": true
+  }
+]

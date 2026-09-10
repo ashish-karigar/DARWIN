@@ -1,0 +1,15 @@
+{
+  "id": "darwin.reminders",
+  "name": "Reminders",
+  "description": "Tasks synced with Apple Reminders",
+  "version": "1.0.0",
+  "type": "native",
+  "icon": "reminders",
+  "entry": "reminders",
+  "permissions": ["reminders.read", "reminders.write"],
+  "instancePolicy": "single",
+  "pinned": true,
+  "launcherOrder": 20,
+  "windowStyle": "document",
+  "edgeEffect": "none"
+}

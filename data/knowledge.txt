@@ -1,0 +1,12 @@
+Project DARWIN is a local-first agentic voice assistant created by Ashish.
+
+DARWIN stands for Distributed Agentic Reasoning and Workflow Intelligence Network.
+
+DARWIN uses OpenAI GPT-OSS-120B through Groq as its primary reasoning model.
+It uses Qwen3 14B through Ollama as its offline fallback model.
+
+LangGraph manages conversation flow and agent orchestration.
+SQLite provides persistent conversation memory.
+ChromaDB stores and retrieves unstructured knowledge.
+Faster Whisper provides local speech recognition.
+Fish Audio S2.1 provides streamed text-to-speech, with pyttsx3 as a local fallback.

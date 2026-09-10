@@ -1,0 +1,14 @@
+{
+  "id": "darwin.settings",
+  "name": "Settings",
+  "description": "System preferences",
+  "version": "1.0.0",
+  "type": "native",
+  "icon": "settings",
+  "entry": "settings",
+  "permissions": ["preferences.read", "preferences.write"],
+  "instancePolicy": "single",
+  "pinned": true,
+  "launcherOrder": 20,
+  "displayMode": "fullscreen"
+}

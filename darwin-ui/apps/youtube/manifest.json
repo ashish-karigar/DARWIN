@@ -1,0 +1,15 @@
+{
+  "id": "darwin.youtube",
+  "name": "YouTube",
+  "description": "Video and media",
+  "version": "1.0.0",
+  "type": "web",
+  "icon": "youtube",
+  "url": "https://www.youtube.com",
+  "allowedOrigins": ["https://www.youtube.com", "https://accounts.google.com"],
+  "permissions": ["media.playback", "media.fullscreen"],
+  "session": "darwin.youtube",
+  "instancePolicy": "single",
+  "pinned": true,
+  "launcherOrder": 30
+}

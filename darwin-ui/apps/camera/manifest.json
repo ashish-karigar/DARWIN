@@ -1,0 +1,13 @@
+{
+  "id": "darwin.camera",
+  "name": "Camera",
+  "description": "Private camera preview and capture",
+  "version": "1.0.0",
+  "type": "native",
+  "icon": "camera",
+  "entry": "camera",
+  "permissions": ["camera.read"],
+  "instancePolicy": "single",
+  "pinned": true,
+  "launcherOrder": 25
+}

@@ -1,0 +1,10 @@
+[
+  {"id": "weather", "query": "What is the weather right now?", "expected_tool": "ask_weather_specialist"},
+  {"id": "tasks", "query": "How many project tasks are incomplete?", "expected_tool": "ask_productivity_specialist"},
+  {"id": "knowledge", "query": "Who created Project DARWIN?", "expected_tool": "ask_knowledge_specialist"},
+  {"id": "music", "query": "Play Billie Jean by Michael Jackson.", "expected_tool": "ask_mac_specialist"},
+  {"id": "diagnostics", "query": "Run live diagnostics.", "expected_tool": "ask_diagnostics_specialist"},
+  {"id": "arithmetic", "query": "What is twelve multiplied by four?", "expected_tool": null},
+  {"id": "general_knowledge", "query": "Why does Earth rotate?", "expected_tool": null},
+  {"id": "identity", "query": "Who are you?", "expected_tool": null}
+]

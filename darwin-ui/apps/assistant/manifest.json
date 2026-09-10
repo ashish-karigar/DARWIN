@@ -1,0 +1,13 @@
+{
+  "id": "darwin.assistant",
+  "name": "Assistant",
+  "description": "Talk to Darwin",
+  "version": "1.0.0",
+  "type": "native",
+  "icon": "assistant",
+  "entry": "assistant",
+  "permissions": ["assistant.read", "assistant.write"],
+  "instancePolicy": "single",
+  "pinned": true,
+  "launcherOrder": 10
+}

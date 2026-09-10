@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "darwin-assistant"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "ollama",
+    "langgraph",
+    "langchain-ollama",
+    "langgraph-checkpoint-sqlite",
+    "chromadb",
+    "langchain-chroma",
+    "langchain-text-splitters",
+    "sounddevice",
+    "scipy",
+    "faster-whisper",
+    "pyttsx3==2.99",
+    "langchain-groq",
+    "python-dotenv",
+    "tiktoken",
+    "kokoro",
+    "soundfile",
+    "spotipy",
+    "fish-audio-sdk[utils]",
+    "httpx",
+    "speechbrain",
+    "sherpa-onnx",
+    "openwakeword",
+    "onnxruntime",
+    "pypinyin",
+    "pydantic>=2.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
