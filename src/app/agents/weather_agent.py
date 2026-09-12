@@ -1,4 +1,5 @@
 from app.agents.base import build_agent
+from app.services.location import get_current_location
 from app.tools.weather import get_current_weather
 
 
@@ -26,4 +27,21 @@ def run_weather_agent(query: str) -> str:
     result = weather_agent.invoke(
         {"messages": [{"role": "user", "content": query}]}
     )
-    return result["messages"][-1].content
+    response = result["messages"][-1].content
+
+    # The location cache is authoritative. Do not make the user repeat a
+    # location that DARWIN successfully discovered during startup.
+    asks_for_location = any(
+        phrase in response.casefold()
+        for phrase in (
+            "which city",
+            "which location",
+            "what city",
+            "what location",
+            "city or region",
+        )
+    )
+    if asks_for_location and get_current_location() is not None:
+        return get_current_weather.invoke({})
+
+    return response

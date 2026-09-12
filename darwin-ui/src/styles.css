@@ -612,48 +612,48 @@ button {
       to bottom,
       var(--surface-0) 0%,
       color-mix(in srgb, var(--surface-0) 96%, transparent) 4%,
-      color-mix(in srgb, var(--surface-0) 55%, transparent) 11%,
-      transparent 22%
+      color-mix(in srgb, var(--surface-0) 55%, transparent)
+        calc(var(--overlay-thickness, 96px) * 0.5),
+      transparent var(--overlay-thickness, 96px)
     ),
     linear-gradient(
       to top,
       var(--surface-0) 0%,
       color-mix(in srgb, var(--surface-0) 96%, transparent) 4%,
-      color-mix(in srgb, var(--surface-0) 55%, transparent) 11%,
-      transparent 22%
+      color-mix(in srgb, var(--surface-0) 55%, transparent)
+        calc(var(--overlay-thickness, 96px) * 0.5),
+      transparent var(--overlay-thickness, 96px)
     ),
     linear-gradient(
       to right,
       var(--surface-0) 0%,
       color-mix(in srgb, var(--surface-0) 96%, transparent) 4%,
-      color-mix(in srgb, var(--surface-0) 50%, transparent) 11%,
-      transparent 22%
+      color-mix(in srgb, var(--surface-0) 50%, transparent)
+        calc(var(--overlay-thickness, 96px) * 0.5),
+      transparent var(--overlay-thickness, 96px)
     ),
     linear-gradient(
       to left,
       var(--surface-0) 0%,
       color-mix(in srgb, var(--surface-0) 96%, transparent) 4%,
-      color-mix(in srgb, var(--surface-0) 50%, transparent) 11%,
-      transparent 22%
-    ),
-    radial-gradient(
-      ellipse at center,
-      transparent 45%,
-      color-mix(in srgb, var(--surface-0) 25%, transparent) 70%,
-      var(--surface-0) 100%
+      color-mix(in srgb, var(--surface-0) 50%, transparent)
+        calc(var(--overlay-thickness, 96px) * 0.5),
+      transparent var(--overlay-thickness, 96px)
     );
-  box-shadow: inset 0 0 7.5rem 2.75rem
-    color-mix(in srgb, var(--surface-0) 82%, transparent);
   -webkit-mask-image: radial-gradient(
-    circle 7rem at var(--overlay-clear-x, -999px) var(--overlay-clear-y, -999px),
-    rgb(0 0 0 / 28%) 0%,
-    rgb(0 0 0 / 52%) 42%,
+    circle var(--overlay-clear-radius, 280px) at var(--overlay-clear-x, -999px)
+      var(--overlay-clear-y, -999px),
+    rgb(0 0 0 / 20%) 0%,
+    rgb(0 0 0 / 45%) 35%,
+    rgb(0 0 0 / 75%) 72%,
     #000 100%
   );
   mask-image: radial-gradient(
-    circle 7rem at var(--overlay-clear-x, -999px) var(--overlay-clear-y, -999px),
-    rgb(0 0 0 / 28%) 0%,
-    rgb(0 0 0 / 52%) 42%,
+    circle var(--overlay-clear-radius, 280px) at var(--overlay-clear-x, -999px)
+      var(--overlay-clear-y, -999px),
+    rgb(0 0 0 / 20%) 0%,
+    rgb(0 0 0 / 45%) 35%,
+    rgb(0 0 0 / 75%) 72%,
     #000 100%
   );
   pointer-events: none;
@@ -1906,94 +1906,6 @@ button {
   height: 100%;
   overflow: hidden;
   background: #000;
-}
-.camera-app::after {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  background:
-    linear-gradient(
-      to bottom,
-      #0c0c0d 0%,
-      rgb(12 12 13 / 96%) 4%,
-      rgb(12 12 13 / 55%) 13%,
-      transparent 27%
-    ),
-    linear-gradient(
-      to top,
-      #0c0c0d 0%,
-      rgb(12 12 13 / 96%) 4%,
-      rgb(12 12 13 / 55%) 13%,
-      transparent 27%
-    ),
-    linear-gradient(
-      to right,
-      #0c0c0d 0%,
-      rgb(12 12 13 / 96%) 4%,
-      rgb(12 12 13 / 50%) 13%,
-      transparent 27%
-    ),
-    linear-gradient(
-      to left,
-      #0c0c0d 0%,
-      rgb(12 12 13 / 96%) 4%,
-      rgb(12 12 13 / 50%) 13%,
-      transparent 27%
-    ),
-    radial-gradient(
-      ellipse at center,
-      transparent 45%,
-      rgb(12 12 13 / 25%) 70%,
-      #0c0c0d 100%
-    );
-  box-shadow: inset 0 0 9rem 3.5rem rgb(12 12 13 / 82%);
-  content: '';
-  pointer-events: none;
-  -webkit-mask-image: radial-gradient(
-    circle 7rem at var(--overlay-x, -999px) var(--overlay-y, -999px),
-    transparent 0%,
-    transparent 42%,
-    #000 100%
-  );
-  mask-image: radial-gradient(
-    circle 7rem at var(--overlay-x, -999px) var(--overlay-y, -999px),
-    transparent 0%,
-    transparent 42%,
-    #000 100%
-  );
-}
-.darwin-shell[data-theme='projector'] .camera-app::after {
-  background:
-    linear-gradient(
-      to bottom,
-      #000 0%,
-      rgb(0 0 0 / 96%) 4%,
-      rgb(0 0 0 / 55%) 13%,
-      transparent 27%
-    ),
-    linear-gradient(
-      to top,
-      #000 0%,
-      rgb(0 0 0 / 96%) 4%,
-      rgb(0 0 0 / 55%) 13%,
-      transparent 27%
-    ),
-    linear-gradient(
-      to right,
-      #000 0%,
-      rgb(0 0 0 / 96%) 4%,
-      rgb(0 0 0 / 50%) 13%,
-      transparent 27%
-    ),
-    linear-gradient(
-      to left,
-      #000 0%,
-      rgb(0 0 0 / 96%) 4%,
-      rgb(0 0 0 / 50%) 13%,
-      transparent 27%
-    ),
-    radial-gradient(ellipse at center, transparent 45%, rgb(0 0 0 / 25%) 70%, #000 100%);
-  box-shadow: inset 0 0 9rem 3.5rem rgb(0 0 0 / 82%);
 }
 .camera-preview {
   width: 100%;

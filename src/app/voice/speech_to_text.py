@@ -1,5 +1,5 @@
 from collections import deque
-from contextlib import nullcontext, redirect_stdout
+from contextlib import ExitStack, nullcontext, redirect_stdout
 from dataclasses import dataclass
 from io import StringIO
 import os
@@ -12,10 +12,12 @@ from faster_whisper import WhisperModel
 from scipy.io.wavfile import write
 
 from app.system.audio_focus import get_audio_focus_manager
+from app.services.ui_activity import publish_ui_audio_level, publish_ui_state
+from app.voice.speech_activity import SpeechActivityDetector
 
 
 SAMPLE_RATE = 16_000
-BLOCK_DURATION = 0.1
+BLOCK_DURATION = 0.08
 BLOCK_SIZE = int(SAMPLE_RATE * BLOCK_DURATION)
 
 START_TIMEOUT_SECONDS = 8
@@ -34,6 +36,16 @@ _last_input_timing = {
     "recording_seconds": None,
     "whisper_seconds": None,
 }
+
+_speech_activity_detector: SpeechActivityDetector | None = None
+
+
+def get_speech_activity_detector() -> SpeechActivityDetector:
+    """Reuse one lightweight VAD runtime across microphone turns."""
+    global _speech_activity_detector
+    if _speech_activity_detector is None:
+        _speech_activity_detector = SpeechActivityDetector()
+    return _speech_activity_detector
 
 
 @dataclass
@@ -76,6 +88,7 @@ def record_until_silence(
     max_recording_seconds: float = MAX_RECORDING_SECONDS,
     announce: bool = True,
     input_stream=None,
+    manage_audio_focus: bool = False,
 ) -> Path | None:
     if announce:
         print("Listening...")
@@ -84,7 +97,9 @@ def record_until_silence(
     pre_roll = deque(maxlen=5)
     speech_started = False
     silent_blocks = 0
-    speech_gate = AdaptiveSpeechGate()
+    speech_detector = get_speech_activity_detector()
+    speech_detector.reset()
+    displayed_level = 0.0
 
     required_silent_blocks = int(silence_seconds / BLOCK_DURATION)
 
@@ -98,33 +113,43 @@ def record_until_silence(
             blocksize=BLOCK_SIZE,
         )
     )
-    with stream_context as stream:
+    with stream_context as stream, ExitStack() as active_contexts:
         waiting_started = time.monotonic()
         recording_started = None
 
         while True:
             block, _ = stream.read(BLOCK_SIZE)
-            volume = calculate_rms(block)
+            activity = speech_detector.process(block)
+            raw_level = min(1.0, calculate_rms(block) / 4_000.0)
+            weighted_level = raw_level * (0.35 + activity.probability * 0.65)
+            smoothing = 0.55 if weighted_level > displayed_level else 0.18
+            displayed_level += (weighted_level - displayed_level) * smoothing
+            publish_ui_audio_level(displayed_level)
 
             if not speech_started:
                 pre_roll.append(block.copy())
 
-                if speech_gate.observe(volume):
+                if activity.is_speech:
                     speech_started = True
                     recording_started = time.monotonic()
                     frames.extend(pre_roll)
                     silent_blocks = 0
+                    if manage_audio_focus:
+                        active_contexts.enter_context(
+                            get_audio_focus_manager().duck()
+                        )
 
                 elif time.monotonic() - waiting_started >= start_timeout_seconds:
                     if announce:
                         print("No speech detected.")
+                    publish_ui_audio_level(0.0)
                     return None
 
                 continue
 
             frames.append(block.copy())
 
-            if volume < speech_gate.threshold:
+            if not activity.is_speech:
                 silent_blocks += 1
             else:
                 silent_blocks = 0
@@ -136,6 +161,8 @@ def record_until_silence(
 
             if recording_duration >= max_recording_seconds:
                 break
+
+    publish_ui_audio_level(0.0)
 
     audio = np.concatenate(frames, axis=0)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -171,25 +198,26 @@ def listen(
 ) -> str:
     global _last_input_timing
 
+    publish_ui_state("listening")
     recording_started = time.monotonic()
-    focus = get_audio_focus_manager().duck() if manage_audio_focus else nullcontext()
     if announce:
-        with focus:
-            audio_path = record_until_silence(
-                output_path=output_path,
-                start_timeout_seconds=start_timeout_seconds,
-                silence_seconds=silence_seconds,
-                max_recording_seconds=max_recording_seconds,
-                input_stream=input_stream,
-            )
+        audio_path = record_until_silence(
+            output_path=output_path,
+            start_timeout_seconds=start_timeout_seconds,
+            silence_seconds=silence_seconds,
+            max_recording_seconds=max_recording_seconds,
+            input_stream=input_stream,
+            manage_audio_focus=manage_audio_focus,
+        )
     else:
-        with redirect_stdout(StringIO()), focus:
+        with redirect_stdout(StringIO()):
             audio_path = record_until_silence(
                 output_path=output_path,
                 start_timeout_seconds=start_timeout_seconds,
                 silence_seconds=silence_seconds,
                 max_recording_seconds=max_recording_seconds,
                 input_stream=input_stream,
+                manage_audio_focus=manage_audio_focus,
             )
     recording_finished = time.monotonic()
 
@@ -198,9 +226,15 @@ def listen(
             "recording_seconds": recording_finished - recording_started,
             "whisper_seconds": None,
         }
+        publish_ui_state("idle")
         return ""
 
-    transcript = transcribe_audio(audio_path)
+    publish_ui_state("transcribing")
+    try:
+        transcript = transcribe_audio(audio_path)
+    except Exception:
+        publish_ui_state("error")
+        raise
     transcription_finished = time.monotonic()
     _last_input_timing = {
         "recording_seconds": recording_finished - recording_started,
@@ -212,4 +246,5 @@ def listen(
             f"recording {recording_finished - recording_started:.1f}s, "
             f"Whisper {transcription_finished - recording_finished:.1f}s"
         )
+    publish_ui_state("idle")
     return transcript

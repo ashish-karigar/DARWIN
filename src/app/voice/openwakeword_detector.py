@@ -9,6 +9,10 @@ from typing import Protocol
 
 import numpy as np
 import sounddevice as sd
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 SAMPLE_RATE = 16_000

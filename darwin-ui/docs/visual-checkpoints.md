@@ -20,3 +20,6 @@ It is intentionally recorded independently of the pointer-clear interaction.
 
 If a later overlay experiment fails, restore the values above and disable only its
 mask or pointer tracking. Do not reconstruct the baseline by eye.
+
+Current policy after this checkpoint: media/visual apps use the clearer by default;
+document apps such as Reminders remain explicit exceptions.

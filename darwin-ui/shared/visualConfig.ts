@@ -1,0 +1,2 @@
+export const APP_OVERLAY_CLEAR_RADIUS_PX = 380
+export const APP_OVERLAY_THICKNESS_PX = 100

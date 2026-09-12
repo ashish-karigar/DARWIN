@@ -1,10 +1,15 @@
 import {
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode
 } from 'react'
 import type { WindowBounds } from '../../shared/contracts'
+import {
+  APP_OVERLAY_CLEAR_RADIUS_PX,
+  APP_OVERLAY_THICKNESS_PX
+} from '../../shared/visualConfig'
 import type { ManagedWindow } from '../stores/windowStore'
 import { useWindowStore } from '../stores/windowStore'
 import type { ShellApp } from './apps'
@@ -93,14 +98,18 @@ export function WindowFrame({
       data-chrome-revealed={chromeRevealed}
       data-window-style={app.manifest.windowStyle}
       aria-label={`${managedWindow.title} window`}
-      style={{
-        display: managedWindow.mode === 'minimized' ? 'none' : undefined,
-        left: managedWindow.bounds.x,
-        top: managedWindow.bounds.y,
-        width: managedWindow.bounds.width,
-        height: managedWindow.bounds.height,
-        zIndex: managedWindow.zIndex
-      }}
+      style={
+        {
+          display: managedWindow.mode === 'minimized' ? 'none' : undefined,
+          left: managedWindow.bounds.x,
+          top: managedWindow.bounds.y,
+          width: managedWindow.bounds.width,
+          height: managedWindow.bounds.height,
+          zIndex: managedWindow.zIndex,
+          '--overlay-clear-radius': `${APP_OVERLAY_CLEAR_RADIUS_PX}px`,
+          '--overlay-thickness': `${APP_OVERLAY_THICKNESS_PX}px`
+        } as CSSProperties
+      }
       onPointerDown={() => focusWindow(managedWindow.instanceId)}
       onPointerMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect()

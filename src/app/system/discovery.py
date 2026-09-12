@@ -21,7 +21,51 @@ def get_system_controller() -> SystemController:
 
 
 def discover_capabilities() -> list[Capability]:
-    return get_system_controller().discover()
+    capabilities = get_system_controller().discover()
+    try:
+        from app.integrations.music.spotify import is_authorized, is_configured
+
+        configured = is_configured()
+        authorized = configured and is_authorized()
+        capabilities.append(
+            Capability(
+                key="audio_focus.spotify",
+                available=authorized,
+                provider="Spotify Web API",
+                detail=(
+                    "Spotify playback ducking is available."
+                    if authorized
+                    else "Authorize Spotify to enable playback ducking."
+                ),
+                permission=None if authorized else "Spotify playback authorization",
+            )
+        )
+    except Exception:
+        capabilities.append(
+            Capability(
+                key="audio_focus.spotify",
+                available=False,
+                provider="Spotify Web API",
+                detail="Spotify capability discovery failed safely.",
+            )
+        )
+    return capabilities
+
+
+def available_capability_names() -> list[str]:
+    """Return concise names suitable for the startup status line."""
+    labels = {
+        "system.volume": "volume",
+        "system.display_brightness": "display brightness",
+        "system.keyboard_brightness": "keyboard brightness",
+        "audio_focus.spotify": "Spotify audio focus",
+        "audio_focus.apple_music": "Apple Music audio focus",
+    }
+    return [
+        labels.get(capability.key, capability.key)
+        for capability in discover_capabilities()
+        if capability.available
+    ]
 
 
 def capability_map() -> dict[str, Capability]:

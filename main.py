@@ -5,8 +5,10 @@ from app.voice.conversation import ContinuousConversation
 from app.services.location import initialize_location
 from app.services.telemetry import record_interaction
 from app.services.status import set_status_handler
+from app.services.ui_activity import publish_ui_state
 from app.safety import action_context, set_confirmation_handler
 from app.safety.models import ActionRequest, RiskLevel
+from app.system.discovery import available_capability_names
 from time import perf_counter
 
 
@@ -20,6 +22,10 @@ def main() -> None:
     else:
         print("Location unavailable; weather requests will require a city.")
 
+    capabilities = available_capability_names()
+    if capabilities:
+        print(f"System controls ready: {', '.join(capabilities)}")
+
     thread_id = input("Session ID [default]: ").strip() or "default"
     mode = input("Mode [continuous/voice/text]: ").strip() or "continuous"
     continuous = ContinuousConversation() if mode == "continuous" else None
@@ -27,7 +33,13 @@ def main() -> None:
     def report_status(message: str) -> None:
         print(f"\nDARWIN: {message}")
         if mode in {"voice", "continuous"}:
-            speak(message)
+            if continuous is not None:
+                continuous.response_started()
+            try:
+                speak(message)
+            finally:
+                if continuous is not None:
+                    continuous.response_completed()
 
     set_status_handler(report_status)
 
@@ -92,6 +104,7 @@ def main() -> None:
             print("i did not hear anything.")
             continue
 
+        publish_ui_state("thinking")
         reasoning_started = perf_counter()
         with action_context(thread_id):
             response = run_supervisor(
@@ -104,7 +117,13 @@ def main() -> None:
 
         speech_timing = {}
         if mode in {"voice", "continuous"}:
-            speech_timing = speak(response)
+            if continuous is not None:
+                continuous.response_started()
+            try:
+                speech_timing = speak(response)
+            finally:
+                if continuous is not None:
+                    continuous.response_completed()
             print(
                 "Latency: "
                 f"input total {input_total:.1f}s, "
@@ -112,8 +131,8 @@ def main() -> None:
                 f"first audio {speech_timing['first_audio']:.1f}s, "
                 f"playback {speech_timing['playback']:.1f}s"
             )
-            if continuous is not None:
-                continuous.response_completed()
+        else:
+            publish_ui_state("idle")
 
         record_interaction(
             session_id=thread_id,
@@ -127,6 +146,8 @@ def main() -> None:
             success=True,
         )
 
+    if continuous is not None:
+        continuous.close()
     print("DARWIN offline.")
 
 

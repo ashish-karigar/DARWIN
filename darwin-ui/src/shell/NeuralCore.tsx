@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useSettingsStore } from '../stores/settingsStore'
+import { useAssistantStore, type AssistantState } from '../stores/assistantStore'
 
 const count = 96
 const points = Array.from({ length: count }, (_, index) => {
@@ -27,12 +28,81 @@ export function NeuralCore() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pointerRef = useRef<{ x: number; y: number } | null>(null)
   const thicknessRef = useRef(1)
+  const assistantStateRef = useRef<AssistantState>('idle')
+  const microphoneLevelRef = useRef(0)
+  const assistantState = useAssistantStore((state) => state.state)
   const brightness = useSettingsStore((state) => state.neuralBrightness)
   const thickness = useSettingsStore((state) => state.neuralThickness)
   const warmth = useSettingsStore((state) => state.neuralWarmth)
+  const voiceEnabled = useSettingsStore((state) => state.voiceEnabled)
   useEffect(() => {
     thicknessRef.current = thickness
   }, [thickness])
+  useEffect(() => {
+    assistantStateRef.current = assistantState
+  }, [assistantState])
+  useEffect(() => {
+    if (!voiceEnabled || !navigator.mediaDevices?.getUserMedia) {
+      microphoneLevelRef.current = 0
+      return
+    }
+    let disposed = false
+    let stream: MediaStream | null = null
+    let audioContext: AudioContext | null = null
+    let microphoneFrame = 0
+    void navigator.mediaDevices
+      .getUserMedia({
+        audio: {
+          autoGainControl: true,
+          echoCancellation: true,
+          noiseSuppression: true
+        },
+        video: false
+      })
+      .then((mediaStream) => {
+        if (disposed) {
+          mediaStream.getTracks().forEach((track) => track.stop())
+          return
+        }
+        stream = mediaStream
+        audioContext = new AudioContext({ latencyHint: 'interactive' })
+        const source = audioContext.createMediaStreamSource(mediaStream)
+        const analyser = audioContext.createAnalyser()
+        analyser.fftSize = 512
+        analyser.smoothingTimeConstant = 0
+        source.connect(analyser)
+        const samples = new Float32Array(analyser.fftSize)
+        let noiseFloor = 0.008
+        let smoothedRms = 0
+        let envelope = 0
+        const measure = () => {
+          analyser.getFloatTimeDomainData(samples)
+          let energy = 0
+          for (const sample of samples) energy += sample * sample
+          const rms = Math.sqrt(energy / samples.length)
+          smoothedRms += (rms - smoothedRms) * 0.16
+          if (smoothedRms < noiseFloor * 1.7)
+            noiseFloor = noiseFloor * 0.99 + smoothedRms * 0.01
+          const threshold = Math.max(0.012, noiseFloor * 2.15)
+          const detected = Math.max(0, Math.min(1, (smoothedRms - threshold) / 0.095))
+          const smoothing = detected > envelope ? 0.22 : 0.055
+          envelope += (detected - envelope) * smoothing
+          microphoneLevelRef.current = envelope
+          microphoneFrame = requestAnimationFrame(measure)
+        }
+        microphoneFrame = requestAnimationFrame(measure)
+      })
+      .catch(() => {
+        microphoneLevelRef.current = 0
+      })
+    return () => {
+      disposed = true
+      cancelAnimationFrame(microphoneFrame)
+      microphoneLevelRef.current = 0
+      stream?.getTracks().forEach((track) => track.stop())
+      if (audioContext) void audioContext.close()
+    }
+  }, [voiceEnabled])
   useEffect(() => {
     const canvas = canvasRef.current
     const context = canvas?.getContext('2d')
@@ -40,6 +110,8 @@ export function NeuralCore() {
     let frame = 0
     let activeZone = -1
     let activeUntil = 0
+    let smoothedAudioLevel = 0
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const activate = (event?: Event) => {
       activeZone =
         (event as CustomEvent<{ zone?: number }> | undefined)?.detail?.zone ??
@@ -56,7 +128,16 @@ export function NeuralCore() {
       }
       context.setTransform(ratio, 0, 0, ratio, 0, 0)
       context.clearRect(0, 0, rect.width, rect.height)
-      const size = Math.min(rect.width, rect.height) * 0.48
+      const state = assistantStateRef.current
+      const voiceWave =
+        state === 'speaking' && !reduceMotion
+          ? Math.sin(now * 0.009) * 0.52 +
+            Math.sin(now * 0.015 + 1.1) * 0.3 +
+            Math.sin(now * 0.023 + 0.4) * 0.18
+          : 0
+      const speechScale = state === 'speaking' ? 1.04 + voiceWave * 0.07 : 1
+      const stateGlow = state === 'speaking' ? 0.2 + Math.max(0, voiceWave) * 0.08 : 0
+      const size = Math.min(rect.width, rect.height) * 0.48 * speechScale
       const cx = rect.width / 2
       const cy = rect.height / 2
       const rotation = now * 0.00008
@@ -68,11 +149,32 @@ export function NeuralCore() {
         cy,
         size * 0.78
       )
-      ambient.addColorStop(0, 'rgba(216,164,82,.07)')
-      ambient.addColorStop(0.55, 'rgba(183,130,54,.03)')
+      ambient.addColorStop(0, `rgba(232,183,101,${0.07 + stateGlow * 0.32})`)
+      ambient.addColorStop(0.55, `rgba(195,143,65,${0.03 + stateGlow * 0.15})`)
       ambient.addColorStop(1, 'rgba(12,12,13,0)')
       context.fillStyle = ambient
       context.fillRect(cx - size, cy - size, size * 2, size * 2)
+      const targetAudioLevel = microphoneLevelRef.current
+      const audioSmoothing = targetAudioLevel > smoothedAudioLevel ? 0.16 : 0.055
+      smoothedAudioLevel += (targetAudioLevel - smoothedAudioLevel) * audioSmoothing
+      if (state === 'listening' || smoothedAudioLevel > 0.005) {
+        const innerRadius = size * (0.115 + smoothedAudioLevel * 0.07)
+        const innerGlow = context.createRadialGradient(
+          cx,
+          cy,
+          0,
+          cx,
+          cy,
+          innerRadius * 2.4
+        )
+        innerGlow.addColorStop(0, `rgba(255,207,123,${smoothedAudioLevel * 0.92})`)
+        innerGlow.addColorStop(0.38, `rgba(225,160,62,${smoothedAudioLevel * 0.58})`)
+        innerGlow.addColorStop(1, 'rgba(171,105,32,0)')
+        context.fillStyle = innerGlow
+        context.beginPath()
+        context.arc(cx, cy, innerRadius * 2.4, 0, Math.PI * 2)
+        context.fill()
+      }
       const projected = points.map((point) => {
         const x = point.x * Math.cos(rotation) - point.z * Math.sin(rotation)
         const z = point.x * Math.sin(rotation) + point.z * Math.cos(rotation)
@@ -101,7 +203,7 @@ export function NeuralCore() {
           now < activeUntil && (from.zone === activeZone || to.zone === activeZone)
             ? 0.22
             : 0
-        const glow = Math.max(glowAt(from), glowAt(to), activity)
+        const glow = Math.max(glowAt(from), glowAt(to), activity, stateGlow)
         context.beginPath()
         context.moveTo(from.x, from.y)
         context.lineTo(to.x, to.y)
@@ -118,7 +220,7 @@ export function NeuralCore() {
         .sort((a, b) => a.z - b.z)
         .forEach((point) => {
           const activity = now < activeUntil && point.zone === activeZone ? 0.22 : 0
-          const glow = Math.max(glowAt(point), activity)
+          const glow = Math.max(glowAt(point), activity, stateGlow)
           context.beginPath()
           context.arc(point.x, point.y, (1.4 + glow * 0.8) * point.scale, 0, Math.PI * 2)
           context.fillStyle =
@@ -142,6 +244,7 @@ export function NeuralCore() {
     <canvas
       ref={canvasRef}
       className="neural-core"
+      data-assistant-state={assistantState}
       style={{
         filter: `brightness(${1 + (brightness - 1) * 0.18}) sepia(${warmth / 10}) saturate(${1 + warmth * 0.42}) contrast(1.15)`
       }}

@@ -32,6 +32,11 @@ dependencies = [
     "onnxruntime",
     "pypinyin",
     "pydantic>=2.0",
+    "trafilatura",
+    "docling",
+    "liteparse",
+    "llama-cloud>=1.0",
+    "sentence-transformers",
 ]
 
 [tool.setuptools.packages.find]

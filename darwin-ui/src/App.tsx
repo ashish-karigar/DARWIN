@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SettingsApp } from './apps/native/SettingsApp'
 import { AppLauncher } from './shell/AppLauncher'
 import { Dock } from './shell/Dock'
@@ -8,8 +8,10 @@ import { shellApps, type ShellApp } from './shell/apps'
 import { useShellKeyboard } from './shell/useShellKeyboard'
 import { useWindowStore } from './stores/windowStore'
 import { useSettingsStore } from './stores/settingsStore'
+import { useAssistantStore } from './stores/assistantStore'
 
 export function App() {
+  const connectAssistant = useAssistantStore((state) => state.connect)
   const themePreference = useSettingsStore((state) => state.theme)
   const setThemePreference = useSettingsStore((state) => state.setTheme)
   const onboardingComplete = useSettingsStore((state) => state.onboardingComplete)
@@ -31,6 +33,8 @@ export function App() {
     ...windows.map((window) => window.appId),
     ...(fullscreenApp ? [fullscreenApp.id] : [])
   ]
+
+  useEffect(() => connectAssistant(), [connectAssistant])
 
   const launchApp = (app: ShellApp) => {
     if (app.displayMode === 'fullscreen') {

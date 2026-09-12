@@ -196,6 +196,11 @@ class AssistantState(WireMessage):
     ]
 
 
+class AssistantAudioLevel(WireMessage):
+    type: Literal["assistant.audio-level"]
+    level: float = Field(ge=0, le=1)
+
+
 class AssistantResponse(WireMessage):
     type: Literal["assistant.response"]
     request_id: UUID = Field(alias="requestId")
@@ -223,6 +228,7 @@ class ErrorMessage(WireMessage):
 ServerMessage = Annotated[
     SessionReady
     | AssistantState
+    | AssistantAudioLevel
     | AssistantResponse
     | ConfirmationRequired
     | ErrorMessage,

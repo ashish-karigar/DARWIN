@@ -7,6 +7,10 @@ import {
   webAppUpdateSchema,
   type WebAppCreateRequest
 } from './webSecurity.js'
+import {
+  APP_OVERLAY_CLEAR_RADIUS_PX,
+  APP_OVERLAY_THICKNESS_PX
+} from '../shared/visualConfig.js'
 
 type WebAppStatus =
   | 'loading'
@@ -91,7 +95,7 @@ export class WebAppManager {
         if (${JSON.stringify(request.edgeEffect)} === 'flow' && !document.getElementById('darwin-edge-flow')) {
           const overlay = document.createElement('div');
           overlay.id = 'darwin-edge-flow';
-          Object.assign(overlay.style, { position: 'fixed', inset: '0', zIndex: '2147483646', pointerEvents: 'none', background: 'linear-gradient(to bottom,var(--darwin-overlay-color,#0c0c0d) 0%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 96%,transparent) 4%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 55%,transparent) 11%,transparent 22%),linear-gradient(to top,var(--darwin-overlay-color,#0c0c0d) 0%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 96%,transparent) 4%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 55%,transparent) 11%,transparent 22%),linear-gradient(to right,var(--darwin-overlay-color,#0c0c0d) 0%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 50%,transparent) 11%,transparent 22%),linear-gradient(to left,var(--darwin-overlay-color,#0c0c0d) 0%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 50%,transparent) 11%,transparent 22%)', boxShadow: 'inset 0 0 7.5rem 2.75rem color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 82%,transparent)', webkitMaskImage: 'radial-gradient(circle 7rem at var(--darwin-clear-x,-999px) var(--darwin-clear-y,-999px),rgb(0 0 0 / 28%) 0%,rgb(0 0 0 / 52%) 42%,#000 100%)', maskImage: 'radial-gradient(circle 7rem at var(--darwin-clear-x,-999px) var(--darwin-clear-y,-999px),rgb(0 0 0 / 28%) 0%,rgb(0 0 0 / 52%) 42%,#000 100%)' });
+          Object.assign(overlay.style, { position: 'fixed', inset: '0', zIndex: '2147483646', pointerEvents: 'none', background: 'linear-gradient(to bottom,var(--darwin-overlay-color,#0c0c0d) 0%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 96%,transparent) 4%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 55%,transparent) ${APP_OVERLAY_THICKNESS_PX * 0.5}px,transparent ${APP_OVERLAY_THICKNESS_PX}px),linear-gradient(to top,var(--darwin-overlay-color,#0c0c0d) 0%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 96%,transparent) 4%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 55%,transparent) ${APP_OVERLAY_THICKNESS_PX * 0.5}px,transparent ${APP_OVERLAY_THICKNESS_PX}px),linear-gradient(to right,var(--darwin-overlay-color,#0c0c0d) 0%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 50%,transparent) ${APP_OVERLAY_THICKNESS_PX * 0.5}px,transparent ${APP_OVERLAY_THICKNESS_PX}px),linear-gradient(to left,var(--darwin-overlay-color,#0c0c0d) 0%,color-mix(in srgb,var(--darwin-overlay-color,#0c0c0d) 50%,transparent) ${APP_OVERLAY_THICKNESS_PX * 0.5}px,transparent ${APP_OVERLAY_THICKNESS_PX}px)', webkitMaskImage: 'radial-gradient(circle ${APP_OVERLAY_CLEAR_RADIUS_PX}px at var(--darwin-clear-x,-999px) var(--darwin-clear-y,-999px),rgb(0 0 0 / 20%) 0%,rgb(0 0 0 / 45%) 35%,rgb(0 0 0 / 75%) 72%,#000 100%)', maskImage: 'radial-gradient(circle ${APP_OVERLAY_CLEAR_RADIUS_PX}px at var(--darwin-clear-x,-999px) var(--darwin-clear-y,-999px),rgb(0 0 0 / 20%) 0%,rgb(0 0 0 / 45%) 35%,rgb(0 0 0 / 75%) 72%,#000 100%)' });
           (document.body || document.documentElement).appendChild(overlay);
           document.addEventListener('pointermove', event => {
             overlay.style.setProperty('--darwin-clear-x', event.clientX + 'px');

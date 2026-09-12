@@ -19,6 +19,18 @@ describe('settings store', () => {
     })
   })
 
+  it('uses and persists the approved neural-core values', () => {
+    expect(useSettingsStore.getState()).toMatchObject({
+      neuralBrightness: 0.5,
+      neuralThickness: 0.5,
+      neuralWarmth: 0.3
+    })
+    useSettingsStore.getState().setNeuralBrightness(1.7)
+    useSettingsStore.getState().setNeuralThickness(1.2)
+    useSettingsStore.getState().setNeuralWarmth(2.4)
+    expect(localStorage.getItem('darwin.preferences')).toContain('"neuralBrightness":1.7')
+  })
+
   it('persists only non-secret preference state', () => {
     useSettingsStore.getState().completeOnboarding({
       groq: true,

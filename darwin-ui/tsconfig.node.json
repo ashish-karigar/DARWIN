@@ -16,6 +16,7 @@
     "electron.vite.config.ts",
     "vitest.config.ts",
     "electron/**/*.ts",
-    "shared/contracts.ts"
+    "shared/contracts.ts",
+    "shared/visualConfig.ts"
   ]
 }

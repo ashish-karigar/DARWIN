@@ -36,8 +36,29 @@ const darwinWebApps = Object.freeze({
   }
 })
 
+const assistantStateListeners = new Map<string, (...args: unknown[]) => void>()
+let nextAssistantStateListenerId = 1
+const darwinAssistant = Object.freeze({
+  getState: () => ipcRenderer.invoke('assistant:get-state'),
+  previewState: (state: string) =>
+    ipcRenderer.invoke('assistant:preview-state', { state }),
+  subscribeState: (listener: (event: unknown) => void) => {
+    const subscriptionId = `assistant-state-${nextAssistantStateListenerId++}`
+    const handler = (_event: unknown, value: unknown) => listener(value)
+    assistantStateListeners.set(subscriptionId, handler)
+    ipcRenderer.on('assistant:state', handler)
+    return subscriptionId
+  },
+  unsubscribeState: (subscriptionId: string) => {
+    const handler = assistantStateListeners.get(subscriptionId)
+    if (handler) ipcRenderer.removeListener('assistant:state', handler)
+    assistantStateListeners.delete(subscriptionId)
+  }
+})
+
 contextBridge.exposeInMainWorld('darwinHost', darwinHost)
 contextBridge.exposeInMainWorld('darwinWebApps', darwinWebApps)
+contextBridge.exposeInMainWorld('darwinAssistant', darwinAssistant)
 contextBridge.exposeInMainWorld('darwinReminders', {
   invoke: (request: unknown) => ipcRenderer.invoke('reminders:invoke', request)
 })

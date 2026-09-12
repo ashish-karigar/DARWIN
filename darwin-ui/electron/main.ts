@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { registerCredentialHandlers } from './credentials.js'
 import { registerWebAppHandlers } from './webApps.js'
 import { registerReminderHandlers } from './reminders.js'
+import { registerAssistantStateService } from './assistantState.js'
 
 const isAllowedExternalUrl = (url: string): boolean => {
   try {
@@ -30,6 +31,7 @@ const createMainWindow = (): BrowserWindow => {
     }
   })
   registerWebAppHandlers(window)
+  registerAssistantStateService(window)
 
   window.webContents.on('preload-error', (_event, preloadPath, error) => {
     console.error(`DARWIN preload failed: ${preloadPath}`, error)
@@ -59,12 +61,12 @@ app.whenReady().then(() => {
   )
   session.defaultSession.setPermissionRequestHandler(
     (_webContents, permission, callback, details) => {
-      const cameraOnly =
+      const shellMedia =
         permission === 'media' &&
         (!('mediaTypes' in details) ||
           !details.mediaTypes ||
-          details.mediaTypes.every((type) => type === 'video'))
-      callback(cameraOnly)
+          details.mediaTypes.every((type) => type === 'video' || type === 'audio'))
+      callback(shellMedia)
     }
   )
   registerCredentialHandlers()

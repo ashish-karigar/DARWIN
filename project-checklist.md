@@ -295,6 +295,30 @@ YouTube-specific work while the rest of the shell progresses.
 
 ## Phase 3 — Python service and assistant UI
 
+### UI-029 — Connect the initial Python-owned activity states ✅
+
+**Depends on:** UI-003, UI-025
+
+- [x] Start a minimal Python state service with the Electron shell.
+- [x] Authenticate commands sent to the child service with an ephemeral secret.
+- [x] Validate Python state messages before exposing them to the renderer.
+- [x] Keep the intelligence surface at OS level rather than opening an Assistant app.
+- [x] Keep a validated state-preview bridge for diagnostics without exposing test controls in the OS UI.
+- [x] Render a soft listening glow on the neural core.
+- [x] Make the core grow and contract organically while speaking.
+- [x] Publish listening and transcribing states from real microphone/Whisper work.
+- [x] Analyze microphone amplitude directly in the trusted shell so the inner orb reacts immediately without waiting for backend state.
+- [x] Publish thinking around the current supervisor execution path.
+- [x] Publish speaking for the complete TTS playback lifecycle, animate a stronger irregular expansion, and return to idle.
+- [x] Stop the state-service child when the DARWIN window closes.
+
+**Scope boundary:** This slice observes the existing voice and reasoning lifecycle.
+It does not yet add OS-level voice activation, conversation submission, response
+streaming, or the transcript rail.
+
+**Done when:** Python can publish idle, listening, or speaking state through the
+desktop boundary and the neural core renders each state without a separate app.
+
 ### UI-030 — Extract a reusable assistant runtime
 
 **Depends on:** UI-001, UI-003
@@ -620,6 +644,7 @@ Add entries whenever a material choice changes.
 | 2026-09-10 | Host remote apps in main-process-owned sandboxed views. | Remote pages must never receive renderer, preload, Node, or unrestricted navigation access. | Each app gets an isolated persistent session, validated IPC lifecycle, and an explicit origin allowlist. |
 | 2026-09-10 | Make DARWIN intelligence an OS-level service, not an Assistant app. | General commands, transcription, reasoning, and responses belong to the shell's single continuous session. | The neural core and right-side transcript are persistent shell surfaces; a future Agent app is reserved for isolated project work. |
 | 2026-09-10 | Preserve the current internal edge overlay as visual checkpoint `overlay-v1`. | The current theme-matched, inward-only dissolve is approved as the recovery baseline before reintroducing pointer clearing. | Pointer interaction may alter only the overlay mask; its gradients, color, shadow, clipping, and width baseline remain recoverable from the checkpoint record. |
+| 2026-09-10 | Introduce Python integration as a narrow state-only child service before FastAPI and conversation wiring. | Listening and speaking visuals need a real process boundary, but the user explicitly deferred the full assistant stack. | UI-029 uses authenticated structured standard I/O; UI-030 and UI-031 still own reusable orchestration and FastAPI/WebSocket work. |
 
 ## Progress summary
 
@@ -627,5 +652,6 @@ Add entries whenever a material choice changes.
 - **Current phase:** Phase 3 — Python service and assistant UI
 - **Completed tasks:** UI-001, UI-002, UI-003, UI-010, UI-011, UI-012, UI-013, UI-014, UI-020, UI-021, UI-022, UI-023
 - **Glitchy prototype:** UI-024 (YouTube); usable, with polish deferred
-- **Next task:** Visually approve UI-025, then begin UI-030
+- **Completed state slice:** UI-029; Python-owned idle/listening/speaking events now drive the OS neural core
+- **Next task:** Visually approve UI-029, then begin the reusable runtime in UI-030
 - **Milestone status:** In progress

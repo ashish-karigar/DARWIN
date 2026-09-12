@@ -7,7 +7,7 @@
   "main": "./out/main/index.js",
   "scripts": {
     "install:runtime": "install-electron",
-    "native:reminders": "mkdir -p 'native/bin/DARWIN Reminders Bridge.app/Contents/MacOS' native/.module-cache && swiftc -module-cache-path native/.module-cache -parse-as-library native/RemindersBridge.swift -o 'native/bin/DARWIN Reminders Bridge.app/Contents/MacOS/darwin-reminders' && cp native/Info.plist 'native/bin/DARWIN Reminders Bridge.app/Contents/Info.plist' && codesign --force --sign - 'native/bin/DARWIN Reminders Bridge.app'",
+    "native:reminders": "mkdir -p 'native/bin/DARWIN Reminders Bridge.app/Contents/MacOS' /tmp/darwin-swift-module-cache && swiftc -module-cache-path /tmp/darwin-swift-module-cache -parse-as-library native/RemindersBridge.swift -o 'native/bin/DARWIN Reminders Bridge.app/Contents/MacOS/darwin-reminders' && cp native/Info.plist 'native/bin/DARWIN Reminders Bridge.app/Contents/Info.plist' && codesign --force --sign - 'native/bin/DARWIN Reminders Bridge.app'",
     "dev": "npm run native:reminders && electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "preview": "electron-vite preview",

@@ -5,6 +5,7 @@ import {
   useSettingsStore,
   type ServiceState
 } from '../../stores/settingsStore'
+import { useAssistantStore } from '../../stores/assistantStore'
 
 interface SettingsAppProps {
   onClose?: () => void
@@ -197,6 +198,7 @@ function SetupWizard({ onComplete }: { onComplete?: () => void }) {
 
 function SettingsContent({ section }: { section: SettingsSection }) {
   const settings = useSettingsStore()
+  const assistant = useAssistantStore()
 
   if (section === 'general')
     return (
@@ -321,6 +323,11 @@ function SettingsContent({ section }: { section: SettingsSection }) {
             checked={settings.voiceEnabled}
             onChange={(event) => settings.setVoiceEnabled(event.target.checked)}
           />
+        </SettingRow>
+        <SettingRow label="Python service">
+          <span className="service-state" data-configured={assistant.connected}>
+            {assistant.connected ? 'Connected' : 'Starting'}
+          </span>
         </SettingRow>
       </SettingsGroup>
     )

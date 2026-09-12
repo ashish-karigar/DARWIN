@@ -33,4 +33,10 @@ interface Window {
   readonly darwinReminders?: {
     invoke: (request: unknown) => Promise<unknown>
   }
+  readonly darwinAssistant?: {
+    getState: () => Promise<unknown>
+    previewState: (state: string) => Promise<{ ok: boolean }>
+    subscribeState: (listener: (event: unknown) => void) => string
+    unsubscribeState: (subscriptionId: string) => void
+  }
 }

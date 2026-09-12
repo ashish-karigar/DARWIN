@@ -200,6 +200,11 @@ export const serverMessageSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     ...messageBase,
+    type: z.literal('assistant.audio-level'),
+    level: z.number().min(0).max(1)
+  }),
+  z.object({
+    ...messageBase,
     type: z.literal('assistant.response'),
     requestId: z.string().uuid(),
     content: z.string().max(100_000),

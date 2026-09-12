@@ -10,6 +10,7 @@ from fishaudio import FishAudio
 from fishaudio.types.tts import TTSConfig
 
 from app.system.audio_focus import get_audio_focus_manager
+from app.services.ui_activity import publish_ui_state
 
 
 load_dotenv()
@@ -137,12 +138,12 @@ def _speak_with_focus_held(text: str) -> dict[str, float]:
                         source if not hasattr(source, "result") else [source.result()]
                     )
                     for chunk in chunks:
-                        if first_audio_at is None:
-                            first_audio_at = time.monotonic()
-
                         data = remainder + chunk
                         complete_length = len(data) - (len(data) % 2)
                         if complete_length:
+                            if first_audio_at is None:
+                                first_audio_at = time.monotonic()
+                                publish_ui_state("speaking")
                             output.write(data[:complete_length])
                         remainder = data[complete_length:]
 
@@ -155,6 +156,7 @@ def _speak_with_focus_held(text: str) -> dict[str, float]:
     except Exception as error:
         print(f"Fish Audio unavailable; using local voice: {error}")
         if first_audio_at is None:
+            publish_ui_state("speaking")
             speak_locally(cleaned_text)
         finished_at = time.monotonic()
         return {
@@ -164,5 +166,8 @@ def _speak_with_focus_held(text: str) -> dict[str, float]:
 
 
 def speak(text: str) -> dict[str, float]:
-    with get_audio_focus_manager().duck():
-        return _speak_with_focus_held(text)
+    try:
+        with get_audio_focus_manager().duck():
+            return _speak_with_focus_held(text)
+    finally:
+        publish_ui_state("idle")
