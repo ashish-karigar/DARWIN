@@ -1,0 +1,4622 @@
+{
+  "dataset": "DARWIN production RAG regression",
+  "retrieval_only": false,
+  "case_count": 23,
+  "successful_cases": 23,
+  "hit_at_1_percent": 100.0,
+  "hit_at_5_percent": 100.0,
+  "mean_reciprocal_rank": 1.0,
+  "no_answer_rejection_percent": 100.0,
+  "answer_required_term_accuracy_percent": 100.0,
+  "grounded_answer_rate_percent": 100.0,
+  "citation_precision_percent": 100.0,
+  "verification_pass_percent": 100.0,
+  "average_latency_seconds": 2.007,
+  "p95_latency_seconds": 4.5911,
+  "cases": [
+    {
+      "case_id": "paper-attribution",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 4.3831,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 3.1835,
+      "query_analysis_seconds": 0.0001,
+      "hybrid_retrieval_seconds": 1.3988,
+      "reranking_seconds": 2.476,
+      "grading_seconds": 0.0006,
+      "context_build_seconds": 0.0062,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "pdf",
+        "attribution",
+        "multi-evidence"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          1
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          1
+        ]
+      ],
+      "question": "Who introduced retrieval-augmented generation?",
+      "answer_text": "The credited authors are Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich K\u00fcttler, Mike Lewis, Wen\u2011tau Yih, Tim Rockt\u00e4schel, Sebastian Riedel, and Douwe Kiela [S1]. Retrieval\u2011augmented generation (RAG) is defined as a fine\u2011tuning approach that endows pre\u2011trained, parametric\u2011memory generation models with a non\u2011parametric memory, combining a pre\u2011trained seq2seq transformer with a dense vector index of Wikipedia accessed by a neural retriever [S2].",
+      "answer_abstained": false,
+      "confidence_reason": "Both information needs are directly addressed by the provided citations.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 1
+        },
+        {
+          "citation_id": "S2",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 2
+        }
+      ],
+      "verification_confidence_reason": "Every claim passed conservative citation checks.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 1.0835,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0104,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "decompose",
+      "planned_queries": [
+        "Who are the credited authors associated with retrieval-augmented generation?",
+        "What source passage defines, names, or presents retrieval-augmented generation?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 2,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 2,
+      "context_token_count": 347,
+      "context_sources": [
+        "rag-paper p.1",
+        "rag-paper p.2"
+      ],
+      "standalone_query": "Who introduced retrieval-augmented generation?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "Who are the credited authors associated with retrieval-augmented generation?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.997,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "Aleksandra Piktus \u2020 , Fabio Petroni \u2020 , Vladimir Karpukhin \u2020 , Naman Goyal \u2020 , Heinrich K\u00fcttler \u2020 ,",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.997,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.992,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "Mike Lewis \u2020 , Wen-tau Yih \u2020 , Tim Rockt\u00e4schel \u2020\u2021 , Sebastian Riedel \u2020\u2021 , Douwe Kiela \u2020",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.992,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.988,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "Patrick Lewis \u2020\u2021 , Ethan Perez \u22c6 ,",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.988,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 4,
+              "score": 0.954,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 12,
+              "text": "Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, and Ming-Wei Chang. REALM: Retrieval-augmented language model pre-training. ArXiv , abs/2002.08909, 2020. URL https: //arxiv.org/abs/2002.08909 .",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.954,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.715,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "\u2020 Facebook AI Research; \u2021 University College London; \u22c6 New York University; plewis@fb.com",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.715,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        },
+        {
+          "query": "What source passage defines, names, or presents retrieval-augmented generation?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.892,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "Aleksandra Piktus \u2020 , Fabio Petroni \u2020 , Vladimir Karpukhin \u2020 , Naman Goyal \u2020 , Heinrich K\u00fcttler \u2020 ,",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.892,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.889,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "Mike Lewis \u2020 , Wen-tau Yih \u2020 , Tim Rockt\u00e4schel \u2020\u2021 , Sebastian Riedel \u2020\u2021 , Douwe Kiela \u2020",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.889,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.888,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "Patrick Lewis \u2020\u2021 , Ethan Perez \u22c6 ,",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.888,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.888,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 2,
+              "text": "We endow pre-trained, parametric-memory generation models with a non-parametric memory through a general-purpose fine-tuning approach which we refer to as retrieval-augmented generation (RAG). We build RAG models where the parametric memory is a pre-trained seq2seq transformer,\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.888,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 5,
+              "score": 0.86,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "\u2020 Facebook AI Research; \u2021 University College London; \u22c6 New York University; plewis@fb.com",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.86,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 1,
+          "direct": true,
+          "score": 0.997,
+          "text": "Patrick Lewis \u2020\u2021 , Ethan Perez \u22c6 , Aleksandra Piktus \u2020 , Fabio Petroni \u2020 , Vladimir Karpukhin \u2020 , Naman Goyal \u2020 , Heinrich K\u00fcttler \u2020 , Mike Lewis \u2020 , Wen-tau Yih \u2020 , Tim Rockt\u00e4schel \u2020\u2021 , Sebastian Riedel \u2020\u2021 , Douwe Kiela \u2020 \u2020 Facebook AI Research; \u2021 University College London; \u22c6 N\u2026"
+        },
+        {
+          "document": "rag-paper",
+          "page": 2,
+          "direct": true,
+          "score": 0.888,
+          "text": "We endow pre-trained, parametric-memory generation models with a non-parametric memory through a general-purpose fine-tuning approach which we refer to as retrieval-augmented generation (RAG). We build RAG models where the parametric memory is a pre-trained seq2seq transformer,\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "paper-memory",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 0.948,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.3621,
+      "query_analysis_seconds": 0.0002,
+      "hybrid_retrieval_seconds": 0.0689,
+      "reranking_seconds": 0.2904,
+      "grading_seconds": 0.0007,
+      "context_build_seconds": 0.0017,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "pdf",
+        "factual",
+        "architecture"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          1
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          1
+        ]
+      ],
+      "question": "What non-parametric memory does RAG use?",
+      "answer_text": "RAG uses a dense vector index of Wikipedia as its non\u2011parametric memory. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly states the non\u2011parametric memory is a dense vector index of Wikipedia.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 2
+        }
+      ],
+      "verification_confidence_reason": "Every claim passed conservative citation checks.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.567,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0001,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "What non-parametric memory does RAG use?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 231,
+      "context_sources": [
+        "rag-paper p.2"
+      ],
+      "standalone_query": "What non-parametric memory does RAG use?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "What non-parametric memory does RAG use?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.998,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Index hot-swapping An advantage of non-parametric memory models like RAG is that knowledge can be easily updated at test time. Parametric-only models like T5 or BART need further training to update their behavior as the world changes. To demonstrate, we build an index using the\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.998,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.997,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 2,
+              "text": "We endow pre-trained, parametric-memory generation models with a non-parametric memory through a general-purpose fine-tuning approach which we refer to as retrieval-augmented generation (RAG). We build RAG models where the parametric memory is a pre-trained seq2seq transformer,\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.997,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.995,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 9,
+              "text": "In this work, we presented hybrid generation models with access to parametric and non-parametric memory. We showed that our RAG models obtain state of the art results on open-domain QA. We found that people prefer RAG's generation over purely parametric BART, finding RAG more fa\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.995,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.994,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 2,
+              "text": "Our results highlight the benefits of combining parametric and non-parametric memory with generation for knowledge-intensive tasks -tasks that humans could not reasonably be expected to perform without access to an external knowledge source. Our RAG models achieve state-of-the-a\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.994,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.988,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 18,
+              "text": "Our RAG models contain the trainable parameters for the BERT-base query and document encoder of DPR, with 110M parameters each (although we do not train the document encoder ourselves) and 406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainab\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.988,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 2,
+          "direct": true,
+          "score": 0.997,
+          "text": "We endow pre-trained, parametric-memory generation models with a non-parametric memory through a general-purpose fine-tuning approach which we refer to as retrieval-augmented generation (RAG). We build RAG models where the parametric memory is a pre-trained seq2seq transformer,\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "paper-hot-swap",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 1.0804,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.373,
+      "query_analysis_seconds": 0.0001,
+      "hybrid_retrieval_seconds": 0.0683,
+      "reranking_seconds": 0.2996,
+      "grading_seconds": 0.0004,
+      "context_build_seconds": 0.0045,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "pdf",
+        "factual",
+        "paraphrase"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          1
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          1
+        ]
+      ],
+      "question": "What advantage does RAG index hot-swapping provide?",
+      "answer_text": "It lets the model\u2019s world knowledge be updated at test time simply by replacing the non\u2011parametric memory, avoiding any additional training. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly states the advantage of hot\u2011swapping as easy knowledge updates without further training.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 7
+        }
+      ],
+      "verification_confidence_reason": "Every claim passed conservative citation checks.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.6919,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0006,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "What advantage does RAG index hot-swapping provide?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 235,
+      "context_sources": [
+        "rag-paper p.7"
+      ],
+      "standalone_query": "What advantage does RAG index hot-swapping provide?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "What advantage does RAG index hot-swapping provide?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.999,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Index hot-swapping An advantage of non-parametric memory models like RAG is that knowledge can be easily updated at test time. Parametric-only models like T5 or BART need further training to update their behavior as the world changes. To demonstrate, we build an index using the\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.999,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.882,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 9,
+              "text": "In this work, we presented hybrid generation models with access to parametric and non-parametric memory. We showed that our RAG models obtain state of the art results on open-domain QA. We found that people prefer RAG's generation over purely parametric BART, finding RAG more fa\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.882,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.352,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 10,
+              "text": "This work offers several positive societal benefits over previous work: the fact that it is more strongly grounded in real factual knowledge (in this case Wikipedia) makes it 'hallucinate' less with generations that are more factual, and offers more control and interpretability.\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.352,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.304,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 10,
+              "text": "With these advantages also come potential downsides: Wikipedia, or any potential external knowledge source, will probably never be entirely factual and completely devoid of bias. Since RAG can be employed as a language model, similar concerns as for GPT-2 [50] are valid here, al\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.304,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.074,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 5,
+              "text": "There are several advantages to generating answers even when it is possible to extract them. Documents with clues about the answer but do not contain the answer verbatim can still contribute towards a correct answer being generated, which is not possible with standard extractive\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.074,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 7,
+          "direct": true,
+          "score": 0.999,
+          "text": "Index hot-swapping An advantage of non-parametric memory models like RAG is that knowledge can be easily updated at test time. Parametric-only models like T5 or BART need further training to update their behavior as the world changes. To demonstrate, we build an index using the\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "paper-rag-variants",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 2.7395,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.4672,
+      "query_analysis_seconds": 0.0002,
+      "hybrid_retrieval_seconds": 0.1417,
+      "reranking_seconds": 0.3819,
+      "grading_seconds": 0.0005,
+      "context_build_seconds": 0.0102,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "pdf",
+        "comparison",
+        "completeness"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "Compare RAG-Token and RAG-Sequence.",
+      "answer_text": "RAG-Token draws a separate latent document for each target token, retrieving the top\u2011K documents and having the generator produce a distribution for the next token conditioned on each document before marginalizing across them for each token generation step. RAG-Sequence treats the retrieved document as a single latent variable, retrieving the top\u2011K documents and having the generator produce the full output\u2011sequence probability for each document, then marginalizing across the documents. Sources: [S1] [S2]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly defines each model's characteristics.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 3
+        },
+        {
+          "citation_id": "S2",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 3
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.839,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 1.4112,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0016,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "decompose",
+      "planned_queries": [
+        "What are the defining characteristics of RAG-Token?",
+        "What are the defining characteristics of RAG-Sequence?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 2,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 2,
+      "context_token_count": 181,
+      "context_sources": [
+        "rag-paper p.3"
+      ],
+      "standalone_query": "Compare RAG-Token and RAG-Sequence.",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "What are the defining characteristics of RAG-Token?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.893,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 3,
+              "text": "RAG-Token Model In the RAG-Token model we can draw a different latent document for each target token and marginalize accordingly. This allows the generator to choose content from several documents when producing an answer. Concretely, the top K documents are retrieved using the\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.893,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.703,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 3,
+              "text": "To train the retriever and generator end-to-end, we treat the retrieved document as a latent variable. We propose two models that marginalize over the latent documents in different ways to produce a distribution over generated text. In one approach, RAG-Sequence , the model uses\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.703,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.696,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 4,
+              "text": "RAG-Token The RAG-Token model can be seen as a standard, autoregressive seq2seq generator with transition probability: p \u2032 \u03b8 ( y i | x, y 1: i - 1 ) = \u2211 z \u2208 topk ( p ( \u00b7| x )) p \u03b7 ( z i | x ) p \u03b8 ( y i | x, z i , y 1: i - 1 ) To decode, we can plug p \u2032 \u03b8 ( y i | x, y 1: i - 1 )\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.696,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 4,
+              "score": 0.63,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 3,
+              "text": "Finally, we note that RAG can be used for sequence classification tasks by considering the target class as a target sequence of length one, in which case RAG-Sequence and RAG-Token are equivalent.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.63,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.543,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Figure 2: RAG-Token document posterior p ( z i | x, y i , y - i ) for each generated token for input 'Hemingway\" for Jeopardy generation with 5 retrieved documents. The posterior for document 1 is high when generating 'A Farewell to Arms\" and for document 2 when generating 'The\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.543,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        },
+        {
+          "query": "What are the defining characteristics of RAG-Sequence?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.826,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 3,
+              "text": "RAG-Sequence Model The RAG-Sequence model uses the same retrieved document to generate the complete sequence . Technically, it treats the retrieved document as a single latent variable that is marginalized to get the seq2seq probability p ( y | x ) via a top-K approximation. Con\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.826,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.621,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 6,
+              "text": "As shown in Table 2, RAG-Sequence outperforms BART on Open MS-MARCO NLG by 2.6 Bleu points and 2.6 Rouge-L points. RAG approaches state-of-the-art model performance, which is impressive given that (i) those models access gold passages with specific information required to genera\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.621,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.544,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 3,
+              "text": "Finally, we note that RAG can be used for sequence classification tasks by considering the target class as a target sequence of length one, in which case RAG-Sequence and RAG-Token are equivalent.",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.544,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 4,
+              "score": 0.467,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Retrieval Ablations A key feature of RAG is learning to retrieve relevant information for the task. To assess the effectiveness of the retrieval mechanism, we run ablations where we freeze the retriever during training. As shown in Table 6, learned retrieval improves results for\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.467,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.222,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Generation Diversity Section 4.3 shows that RAG models are more factual and specific than BART for Jeopardy question generation. Following recent work on diversity-promoting decoding [33, 59, 39], we also investigate generation diversity by calculating the ratio of distinct ngra\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.222,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 3,
+          "direct": true,
+          "score": 0.893,
+          "text": "RAG-Token Model In the RAG-Token model we can draw a different latent document for each target token and marginalize accordingly. This allows the generator to choose content from several documents when producing an answer. Concretely, the top K documents are retrieved using the\u2026"
+        },
+        {
+          "document": "rag-paper",
+          "page": 3,
+          "direct": true,
+          "score": 0.826,
+          "text": "RAG-Sequence Model The RAG-Sequence model uses the same retrieved document to generate the complete sequence . Technically, it treats the retrieved document as a single latent variable that is marginalized to get the seq2seq probability p ( y | x ) via a top-K approximation. Con\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "paper-document-encoder",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 2.2074,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.3513,
+      "query_analysis_seconds": 0.0002,
+      "hybrid_retrieval_seconds": 0.0696,
+      "reranking_seconds": 0.2794,
+      "grading_seconds": 0.0004,
+      "context_build_seconds": 0.0015,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "pdf",
+        "reasoning",
+        "step-back"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "Why did the RAG authors keep the document encoder fixed during training?",
+      "answer_text": "They kept the document encoder fixed because updating it during training is costly\u2014it would require periodically rebuilding the document index\u2014and they found that this step was not needed to achieve strong performance. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly states the cost and lack of necessity as reasons.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 3
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 1.1326,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.7038,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0002,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "step_back",
+      "planned_queries": [
+        "Why did the RAG authors keep the document encoder fixed during training?",
+        "What broader mechanisms and evidence explain this question: Why did the RAG authors keep the document encoder fixed during training?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 142,
+      "context_sources": [
+        "rag-paper p.3"
+      ],
+      "standalone_query": "Why did the RAG authors keep the document encoder fixed during training?",
+      "step_back_query": "What broader mechanisms and evidence explain this question: Why did the RAG authors keep the document encoder fixed during training?",
+      "retrieval_details": [
+        {
+          "query": "Why did the RAG authors keep the document encoder fixed during training?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.939,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 3,
+              "text": "We jointly train the retriever and generator components without any direct supervision on what document should be retrieved. Given a fine-tuning training corpus of input/output pairs ( x j , y j ) , we minimize the negative marginal log-likelihood of each target, \u2211 j - log p ( y\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.939,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.754,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 4,
+              "text": "We experiment with RAG in a wide range of knowledge-intensive tasks. For all experiments, we use a single Wikipedia dump for our non-parametric knowledge source. Following Lee et al. [31] and Karpukhin et al. [26], we use the December 2018 dump. Each Wikipedia article is split i\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.754,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.546,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Retrieval Ablations A key feature of RAG is learning to retrieve relevant information for the task. To assess the effectiveness of the retrieval mechanism, we run ablations where we freeze the retriever during training. As shown in Table 6, learned retrieval improves results for\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.546,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.412,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 18,
+              "text": "For open-domain QA, multiple answer annotations are often available for a given question. These answer annotations are exploited by extractive models during training as typically all the answer annotations are used to find matches within documents when preparing training data. F\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.412,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.119,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 8,
+              "text": "Effect of Retrieving more documents Models are trained with either 5 or 10 retrieved latent documents, and we do not observe significant differences in performance between them. We have the flexibility to adjust the number of retrieved documents at test time, which can affect pe\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.119,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 3,
+          "direct": true,
+          "score": 0.939,
+          "text": "We jointly train the retriever and generator components without any direct supervision on what document should be retrieved. Given a fine-tuning training corpus of input/output pairs ( x j , y j ) , we minimize the negative marginal log-likelihood of each target, \u2211 j - log p ( y\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "paper-index-scale",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 1.1741,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.2377,
+      "query_analysis_seconds": 0.0002,
+      "hybrid_retrieval_seconds": 0.0689,
+      "reranking_seconds": 0.1651,
+      "grading_seconds": 0.0006,
+      "context_build_seconds": 0.0027,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "pdf",
+        "multi-fact",
+        "completeness"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          1
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          1
+        ]
+      ],
+      "question": "How was the Wikipedia retrieval index constructed for the RAG experiments?",
+      "answer_text": "The index was built from a December 2018 Wikipedia dump, split into disjoint 100\u2011word chunks (21\u202fM documents). Each chunk was encoded with the document encoder, and all embeddings were indexed in a single MIPS index using FAISS with a Hierarchical Navigable Small World approximation for fast retrieval. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly describes the source dump, chunking, encoding, and FAISS HNSW indexing.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 4
+        }
+      ],
+      "verification_confidence_reason": "Every claim passed conservative citation checks.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.917,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0002,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "How was the Wikipedia retrieval index constructed for the RAG experiments?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 168,
+      "context_sources": [
+        "rag-paper p.4"
+      ],
+      "standalone_query": "How was the Wikipedia retrieval index constructed for the RAG experiments?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "How was the Wikipedia retrieval index constructed for the RAG experiments?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.986,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 4,
+              "text": "We experiment with RAG in a wide range of knowledge-intensive tasks. For all experiments, we use a single Wikipedia dump for our non-parametric knowledge source. Following Lee et al. [31] and Karpukhin et al. [26], we use the December 2018 dump. Each Wikipedia article is split i\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.986,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.942,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 2,
+              "text": "We endow pre-trained, parametric-memory generation models with a non-parametric memory through a general-purpose fine-tuning approach which we refer to as retrieval-augmented generation (RAG). We build RAG models where the parametric memory is a pre-trained seq2seq transformer,\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.942,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.871,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 9,
+              "text": "In this work, we presented hybrid generation models with access to parametric and non-parametric memory. We showed that our RAG models obtain state of the art results on open-domain QA. We found that people prefer RAG's generation over purely parametric BART, finding RAG more fa\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.871,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.721,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Index hot-swapping An advantage of non-parametric memory models like RAG is that knowledge can be easily updated at test time. Parametric-only models like T5 or BART need further training to update their behavior as the world changes. To demonstrate, we build an index using the\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.721,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.719,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 19,
+              "text": "In preliminary experiments, we observed that for some tasks such as story generation [11], the retrieval component would 'collapse' and learn to retrieve the same documents regardless of the input. In these cases, once retrieval had collapsed, the generator would learn to ignore\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.719,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 4,
+          "direct": true,
+          "score": 0.986,
+          "text": "We experiment with RAG in a wide range of knowledge-intensive tasks. For all experiments, we use a single Wikipedia dump for our non-parametric knowledge source. Following Lee et al. [31] and Karpukhin et al. [26], we use the December 2018 dump. Each Wikipedia article is split i\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "paper-parameter-count",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 1.496,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.4277,
+      "query_analysis_seconds": 0.0003,
+      "hybrid_retrieval_seconds": 0.123,
+      "reranking_seconds": 0.3014,
+      "grading_seconds": 0.0003,
+      "context_build_seconds": 0.0025,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "pdf",
+        "numeric"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "How many trainable parameters do the RAG models contain?",
+      "answer_text": "The RAG models contain a total of 626\u202fmillion trainable parameters. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence explicitly states the total trainable parameters as 626M.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 18
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.5735,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.4714,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0002,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "How many trainable parameters do the RAG models contain?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 220,
+      "context_sources": [
+        "rag-paper p.18"
+      ],
+      "standalone_query": "How many trainable parameters do the RAG models contain?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "How many trainable parameters do the RAG models contain?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 1.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 18,
+              "text": "Our RAG models contain the trainable parameters for the BERT-base query and document encoder of DPR, with 110M parameters each (although we do not train the document encoder ourselves) and 406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainab\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 1.0,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.482,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 6,
+              "text": "Table 2 shows our results on FEVER. For 3-way classification, RAG scores are within 4.3% of state-of-the-art models, which are complex pipeline systems with domain-specific architectures and substantial engineering, trained using intermediate retrieval supervision, which RAG doe\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.482,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.337,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 3,
+              "text": "Finally, we note that RAG can be used for sequence classification tasks by considering the target class as a target sequence of length one, in which case RAG-Sequence and RAG-Token are equivalent.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.337,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.255,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 3,
+              "text": "RAG-Sequence Model The RAG-Sequence model uses the same retrieved document to generate the complete sequence . Technically, it treats the retrieved document as a single latent variable that is marginalized to get the seq2seq probability p ( y | x ) via a top-K approximation. Con\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.255,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.224,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 6,
+              "text": "As shown in Table 2, RAG-Sequence outperforms BART on Open MS-MARCO NLG by 2.6 Bleu points and 2.6 Rouge-L points. RAG approaches state-of-the-art model performance, which is impressive given that (i) those models access gold passages with specific information required to genera\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.224,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 18,
+          "direct": true,
+          "score": 1.0,
+          "text": "Our RAG models contain the trainable parameters for the BERT-base query and document encoder of DPR, with 110M parameters each (although we do not train the document encoder ourselves) and 406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainab\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "paper-hallucination",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 1.9178,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.5814,
+      "query_analysis_seconds": 0.0002,
+      "hybrid_retrieval_seconds": 0.1209,
+      "reranking_seconds": 0.4568,
+      "grading_seconds": 0.0008,
+      "context_build_seconds": 0.0025,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "pdf",
+        "reasoning",
+        "source-quality"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "Why can retrieved external evidence reduce hallucination?",
+      "answer_text": "Because the model is more strongly grounded in real factual knowledge from the retrieved evidence, its generations become more factual and thus it 'hallucinates' less. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly states that grounding in real factual knowledge reduces hallucination.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 10
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.6285,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.6834,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 4.4963,
+      "evaluation_model_calls": [
+        {
+          "schema": "FactCoverageDraft",
+          "provider": "ollama",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 4.4957,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "error_message": null,
+      "query_strategy": "step_back",
+      "planned_queries": [
+        "Why can retrieved external evidence reduce hallucination?",
+        "How does being grounded in real factual knowledge affect hallucination and factual generation?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 2,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 100,
+      "context_sources": [
+        "rag-paper p.10"
+      ],
+      "standalone_query": "Why can retrieved external evidence reduce hallucination?",
+      "step_back_query": "How does being grounded in real factual knowledge affect hallucination and factual generation?",
+      "retrieval_details": [
+        {
+          "query": "Why can retrieved external evidence reduce hallucination?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.028,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "Pre-trained neural language models have been shown to learn a substantial amount of in-depth knowledge from data [47]. They can do so without any access to an external memory, as a parameterized implicit knowledge base [51, 52]. While this development is exciting, such models do\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.028,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.027,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "- Grade evidence as sufficient, partial, or irrelevant. - Rewrite only missing information needs. - Add one bounded retrieval retry. - Add approved web search for missing corpus information. - Abstain when no reliable evidence exists. **Result:** weak retrieval triggers controll\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.027,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 5,
+              "text": "FEVER [56] requires classifying whether a natural language claim is supported or refuted by Wikipedia, or whether there is not enough information to decide. The task requires retrieving evidence from Wikipedia relating to the claim and then reasoning over this evidence to classi\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 9,
+              "text": "Memory-based Architectures Our document index can be seen as a large external memory for neural networks to attend to, analogous to memory networks [64, 55]. Concurrent work [14] learns to retrieve a trained embedding for each entity in the input, rather than to retrieve raw tex\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 10,
+              "text": "This work offers several positive societal benefits over previous work: the fact that it is more strongly grounded in real factual knowledge (in this case Wikipedia) makes it 'hallucinate' less with generations that are more factual, and offers more control and interpretability.\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        },
+        {
+          "query": "How does being grounded in real factual knowledge affect hallucination and factual generation?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.987,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 10,
+              "text": "This work offers several positive societal benefits over previous work: the fact that it is more strongly grounded in real factual knowledge (in this case Wikipedia) makes it 'hallucinate' less with generations that are more factual, and offers more control and interpretability.\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.987,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.034,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "The generation model receives: ```text - the resolved user question; - the evidence bundle; - source labels; - instructions to use only that evidence for factual claims; - an explicit output schema. ``` Suggested answer contract: ```python GroundedAnswer: answer citations[] answ\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.034,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.003,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 14,
+              "text": "Fabio Petroni, Patrick Lewis, Aleksandra Piktus, Tim Rockt\u00e4schel, Yuxiang Wu, Alexander H. Miller, and Sebastian Riedel. How context affects language models' factual predictions. In Automated Knowledge Base Construction , 2020. URL https://openreview.net/forum? id=025X0zPfn .",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.003,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.002,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 2,
+              "text": "Our results highlight the benefits of combining parametric and non-parametric memory with generation for knowledge-intensive tasks -tasks that humans could not reasonably be expected to perform without access to an external knowledge source. Our RAG models achieve state-of-the-a\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.002,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.001,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 19,
+              "text": "In preliminary experiments, we observed that for some tasks such as story generation [11], the retrieval component would 'collapse' and learn to retrieve the same documents regardless of the input. In these cases, once retrieval had collapsed, the generator would learn to ignore\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.001,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 10,
+          "direct": true,
+          "score": 0.987,
+          "text": "This work offers several positive societal benefits over previous work: the fact that it is more strongly grounded in real factual knowledge (in this case Wikipedia) makes it 'hallucinate' less with generations that are more factual, and offers more control and interpretability.\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "paper-jeopardy",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 3.4373,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.509,
+      "query_analysis_seconds": 0.0004,
+      "hybrid_retrieval_seconds": 0.1647,
+      "reranking_seconds": 0.4134,
+      "grading_seconds": 0.0009,
+      "context_build_seconds": 0.0051,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "pdf",
+        "reasoning",
+        "multi-fact"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "Which RAG variant performed better on Jeopardy question generation, and why might it help?",
+      "answer_text": "RAG-Token performed better than RAG-Sequence on Jeopardy question generation [S1]. It may help because Jeopardy questions often require combining two pieces of information, and RAG-Token can generate responses that draw from multiple documents, allowing the non\u2011parametric memory to guide generation and trigger the model\u2019s parametric knowledge to complete titles [S2].",
+      "answer_abstained": false,
+      "confidence_reason": "Both information needs are directly addressed by the provided evidence.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 6
+        },
+        {
+          "citation_id": "S2",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 6
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 1.7958,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 1.094,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0003,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "decompose",
+      "planned_queries": [
+        "Which RAG variant performed better on Jeopardy question generation?",
+        "Why might the RAG variant that performed better on Jeopardy question generation help?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 2,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 2,
+      "context_token_count": 441,
+      "context_sources": [
+        "rag-paper p.6"
+      ],
+      "standalone_query": "Which RAG variant performed better on Jeopardy question generation, and why might it help?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "Which RAG variant performed better on Jeopardy question generation?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 1.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 6,
+              "text": "Table 2 shows that RAG-Token performs better than RAG-Sequence on Jeopardy question generation, with both models outperforming BART on Q-BLEU-1. 4 shows human evaluation results, over 452 pairs of generations from BART and RAG-Token. Evaluators indicated that BART was more factu\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 1.0,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.987,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Generation Diversity Section 4.3 shows that RAG models are more factual and specific than BART for Jeopardy question generation. Following recent work on diversity-promoting decoding [33, 59, 39], we also investigate generation diversity by calculating the ratio of distinct ngra\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.987,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.986,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 5,
+              "text": "We use the splits from SearchQA [10], with 100K train, 14K dev, and 27K test examples. As this is a new task, we train a BART model for comparison. Following [67], we evaluate using the SQuAD-tuned Q-BLEU-1 metric [42]. Q-BLEU is a variant of BLEU with a higher weight for matchi\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.986,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 4,
+              "score": 0.984,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 6,
+              "text": "Jeopardy questions often contain two separate pieces of information, and RAG-Token may perform best because it can generate responses that combine content from several documents. Figure 2 shows an example. When generating 'Sun', the posterior is high for document 2 which mention\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.984,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.959,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 8,
+              "text": "Table 4: Human assessments for the Jeopardy Question Generation Task. | | Factuality | Specificity | |-------------|--------------|---------------| | BART better | 7.1% | 16.8% | | RAG better | 42.7% | 37.4% | | Both good | 11.7% | 11.8% | | Both poor | 17.7% | 6.9% | | No major\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.959,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        },
+        {
+          "query": "Why might the RAG variant that performed better on Jeopardy question generation help?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.998,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 6,
+              "text": "Table 2 shows that RAG-Token performs better than RAG-Sequence on Jeopardy question generation, with both models outperforming BART on Q-BLEU-1. 4 shows human evaluation results, over 452 pairs of generations from BART and RAG-Token. Evaluators indicated that BART was more factu\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.998,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.993,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 6,
+              "text": "Jeopardy questions often contain two separate pieces of information, and RAG-Token may perform best because it can generate responses that combine content from several documents. Figure 2 shows an example. When generating 'Sun', the posterior is high for document 2 which mention\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.993,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.894,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 5,
+              "text": "We use the splits from SearchQA [10], with 100K train, 14K dev, and 27K test examples. As this is a new task, we train a BART model for comparison. Following [67], we evaluate using the SQuAD-tuned Q-BLEU-1 metric [42]. Q-BLEU is a variant of BLEU with a higher weight for matchi\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.894,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.892,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 5,
+              "text": "To evaluate RAG's generation abilities in a non-QA setting, we study open-domain question generation. Rather than use questions from standard open-domain QA tasks, which typically consist of short, simple questions, we propose the more demanding task of generating Jeopardy quest\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.892,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.892,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Generation Diversity Section 4.3 shows that RAG models are more factual and specific than BART for Jeopardy question generation. Following recent work on diversity-promoting decoding [33, 59, 39], we also investigate generation diversity by calculating the ratio of distinct ngra\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.892,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 6,
+          "direct": true,
+          "score": 1.0,
+          "text": "Table 2 shows that RAG-Token performs better than RAG-Sequence on Jeopardy question generation, with both models outperforming BART on Q-BLEU-1. 4 shows human evaluation results, over 452 pairs of generations from BART and RAG-Token. Evaluators indicated that BART was more factu\u2026"
+        },
+        {
+          "document": "rag-paper",
+          "page": 6,
+          "direct": true,
+          "score": 0.993,
+          "text": "Jeopardy questions often contain two separate pieces of information, and RAG-Token may perform best because it can generate responses that combine content from several documents. Figure 2 shows an example. When generating 'Sun', the posterior is high for document 2 which mention\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "plan-pdf-parser",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 1.5365,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.3974,
+      "query_analysis_seconds": 0.0004,
+      "hybrid_retrieval_seconds": 0.1016,
+      "reranking_seconds": 0.2927,
+      "grading_seconds": 0.0004,
+      "context_build_seconds": 0.002,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "markdown",
+        "policy"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "Which parser should DARWIN primarily use for PDF files?",
+      "answer_text": "DARWIN should primarily use the Docling parser for PDF files. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The table in the evidence explicitly lists Docling as the primary parser for PDF inputs.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "DARWIN Advanced RAG Build Plan",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/action-plan/rag/README.md",
+          "page_number": null
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.5971,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.5034,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0002,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "Which parser should DARWIN primarily use for PDF files?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 125,
+      "context_sources": [
+        "DARWIN Advanced RAG Build Plan"
+      ],
+      "standalone_query": "Which parser should DARWIN primarily use for PDF files?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "Which parser should DARWIN primarily use for PDF files?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.846,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Select the cheapest parser that preserves the required information: Do not send every document through an LLM. Clean text should remain deterministic, local, inexpensive, and fast.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.846,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.822,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "| Input | Primary parser | Escalation path | | --- | --- | --- | | Plain text | Native Python | None | | Markdown | Markdown-aware parser | None | | HTML/web page | Trafilatura | Docling or targeted browser extraction | | PDF | Docling | LLM/vision-assisted parsing for failed pa\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.822,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.757,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Use LLM or vision assistance only when the normal parser detects: - broken reading order; - complex or cross-page tables; - charts whose meaning is not present in surrounding text; - handwriting; - low OCR confidence; - missing section hierarchy; - formulas that were extracted i\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.757,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.629,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "```text Documents and websites \u2502 \u25bc Parser router \u251c\u2500 Native text/Markdown parser \u251c\u2500 Trafilatura web parser \u251c\u2500 Docling PDF/Office parser \u2514\u2500 LLM/vision-assisted parser for difficult pages \u2502 \u25bc Normalized document model \u2502 \u25bc Structure-aware chunking \u2502 \u251c\u2500 child text chunks \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25ba ve\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.629,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.523,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "1. **Use deterministic code for predictable work.** File detection, parsing selection, metadata validation, chunk creation, filtering, and citation assembly should not depend on an LLM. 2. **Use an LLM only where reasoning adds value.** Difficult document reconstruction, query d\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.523,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "DARWIN Advanced RAG Build Plan",
+          "page": null,
+          "direct": true,
+          "score": 0.822,
+          "text": "| Input | Primary parser | Escalation path | | --- | --- | --- | | Plain text | Native Python | None | | Markdown | Markdown-aware parser | None | | HTML/web page | Trafilatura | Docling or targeted browser extraction | | PDF | Docling | LLM/vision-assisted parsing for failed pa\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "plan-assisted-parser",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 2.4554,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.4136,
+      "query_analysis_seconds": 0.0003,
+      "hybrid_retrieval_seconds": 0.092,
+      "reranking_seconds": 0.3162,
+      "grading_seconds": 0.0004,
+      "context_build_seconds": 0.0045,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "markdown",
+        "policy",
+        "multi-fact"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "When should DARWIN use LLM-assisted document parsing?",
+      "answer_text": "DARWIN should use LLM\u2011assisted (or vision\u2011assisted) document parsing only when the normal parser detects problems such as broken reading order, complex or cross\u2011page tables, charts whose meaning is not in surrounding text, handwriting, low OCR confidence, missing section hierarchy, or incorrectly extracted formulas. After using the assisted parser, its output must be returned in the same normalized schema as other parsers and must be validated before indexing. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly lists the trigger conditions and the required validation step.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "DARWIN Advanced RAG Build Plan",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/action-plan/rag/README.md",
+          "page_number": null
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.9642,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 1.0499,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0003,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "When should DARWIN use LLM-assisted document parsing?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 3,
+      "context_token_count": 329,
+      "context_sources": [
+        "DARWIN Advanced RAG Build Plan"
+      ],
+      "standalone_query": "When should DARWIN use LLM-assisted document parsing?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "When should DARWIN use LLM-assisted document parsing?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.999,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Use LLM or vision assistance only when the normal parser detects: - broken reading order; - complex or cross-page tables; - charts whose meaning is not present in surrounding text; - handwriting; - low OCR confidence; - missing section hierarchy; - formulas that were extracted i\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.999,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.985,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Select the cheapest parser that preserves the required information: Do not send every document through an LLM. Clean text should remain deterministic, local, inexpensive, and fast.",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.985,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.978,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "1. **Use deterministic code for predictable work.** File detection, parsing selection, metadata validation, chunk creation, filtering, and citation assembly should not depend on an LLM. 2. **Use an LLM only where reasoning adds value.** Difficult document reconstruction, query d\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.978,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 4,
+              "score": 0.976,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "| Input | Primary parser | Escalation path | | --- | --- | --- | | Plain text | Native Python | None | | Markdown | Markdown-aware parser | None | | HTML/web page | Trafilatura | Docling or targeted browser extraction | | PDF | Docling | LLM/vision-assisted parsing for failed pa\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.976,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.819,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "- Create the normalized document contract. - Create the parser router. - Add native text/Markdown, Trafilatura, and Docling adapters. - Preserve page, section, table, and URL metadata. - Add assisted parsing as a fallback, not the default. **Result:** heterogeneous documents pro\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.819,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "DARWIN Advanced RAG Build Plan",
+          "page": null,
+          "direct": true,
+          "score": 0.999,
+          "text": "Use LLM or vision assistance only when the normal parser detects: - broken reading order; - complex or cross-page tables; - charts whose meaning is not present in surrounding text; - handwriting; - low OCR confidence; - missing section hierarchy; - formulas that were extracted i\u2026"
+        },
+        {
+          "document": "DARWIN Advanced RAG Build Plan",
+          "page": null,
+          "direct": true,
+          "score": 0.985,
+          "text": "Select the cheapest parser that preserves the required information: Do not send every document through an LLM. Clean text should remain deterministic, local, inexpensive, and fast."
+        },
+        {
+          "document": "DARWIN Advanced RAG Build Plan",
+          "page": null,
+          "direct": true,
+          "score": 0.978,
+          "text": "1. **Use deterministic code for predictable work.** File detection, parsing selection, metadata validation, chunk creation, filtering, and citation assembly should not depend on an LLM. 2. **Use an LLM only where reasoning adds value.** Difficult document reconstruction, query d\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "plan-graph-policy",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 2.9243,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.9767,
+      "query_analysis_seconds": 0.0003,
+      "hybrid_retrieval_seconds": 0.0955,
+      "reranking_seconds": 0.8758,
+      "grading_seconds": 0.0003,
+      "context_build_seconds": 0.0047,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "markdown",
+        "policy"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "When should graph retrieval be added to DARWIN RAG?",
+      "answer_text": "Graph retrieval should be added only when the corpus needs explicit multi\u2011hop relationships and after you have shown that vector, lexical, parent, and structured retrieval alone fail to retrieve those relationships. The evidence does not specify any additional mandatory validation, completion, or exit condition that must be performed after adding the graph. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly states the condition for adding a graph and does not mention any further required validation steps.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "DARWIN Advanced RAG Build Plan",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/action-plan/rag/README.md",
+          "page_number": null
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 1.0584,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.8637,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0009,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "When should graph retrieval be added to DARWIN RAG?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 3,
+      "context_token_count": 553,
+      "context_sources": [
+        "DARWIN Advanced RAG Build Plan"
+      ],
+      "standalone_query": "When should graph retrieval be added to DARWIN RAG?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "When should graph retrieval be added to DARWIN RAG?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.992,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Use a graph when the corpus requires explicit multi-hop relationships, for example: ```text person \u2192 works_for \u2192 company company \u2192 owns \u2192 product product \u2192 depends_on \u2192 component ``` A graph database is not automatically required for advanced RAG. Begin with vector, lexical, par\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.992,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.953,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "```text original/subquery \u251c\u2500 dense vector search \u251c\u2500 lexical keyword search \u251c\u2500 optional structured query \u2514\u2500 optional graph traversal \u2502 \u25bc rank fusion \u2192 duplicate removal \u2192 source diversity \u2192 cross-encoder reranking \u2192 top evidence ``` Recommended first implementation: 1. Retrieve t\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.953,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.929,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "- Grade evidence as sufficient, partial, or irrelevant. - Rewrite only missing information needs. - Add one bounded retrieval retry. - Add approved web search for missing corpus information. - Abstain when no reliable evidence exists. **Result:** weak retrieval triggers controll\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.929,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.894,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "If document retrieval and web search both fail, DARWIN must not fabricate a sourced answer from model memory. It should say that reliable evidence was not found. A general model-knowledge answer may be offered only when clearly labelled as unverified and the user requests it.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.894,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.89,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "The core build sequence in this document is complete in `src/app/ragv2`. - Heterogeneous sources are normalized through native text/Markdown, web, image/OCR, LiteParse, Docling, and optional LlamaParse adapters. - Structure-aware prose, table, image, and code chunkers preserve p\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.89,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "DARWIN Advanced RAG Build Plan",
+          "page": null,
+          "direct": true,
+          "score": 0.992,
+          "text": "Use a graph when the corpus requires explicit multi-hop relationships, for example: ```text person \u2192 works_for \u2192 company company \u2192 owns \u2192 product product \u2192 depends_on \u2192 component ``` A graph database is not automatically required for advanced RAG. Begin with vector, lexical, par\u2026"
+        },
+        {
+          "document": "DARWIN Advanced RAG Build Plan",
+          "page": null,
+          "direct": true,
+          "score": 0.953,
+          "text": "```text original/subquery \u251c\u2500 dense vector search \u251c\u2500 lexical keyword search \u251c\u2500 optional structured query \u2514\u2500 optional graph traversal \u2502 \u25bc rank fusion \u2192 duplicate removal \u2192 source diversity \u2192 cross-encoder reranking \u2192 top evidence ``` Recommended first implementation: 1. Retrieve t\u2026"
+        },
+        {
+          "document": "DARWIN Advanced RAG Build Plan",
+          "page": null,
+          "direct": true,
+          "score": 0.89,
+          "text": "The core build sequence in this document is complete in `src/app/ragv2`. - Heterogeneous sources are normalized through native text/Markdown, web, image/OCR, LiteParse, Docling, and optional LlamaParse adapters. - Structure-aware prose, table, image, and code chunkers preserve p\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "plan-correction-limit",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 1.248,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.373,
+      "query_analysis_seconds": 0.0003,
+      "hybrid_retrieval_seconds": 0.0784,
+      "reranking_seconds": 0.2901,
+      "grading_seconds": 0.0003,
+      "context_build_seconds": 0.0037,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "markdown",
+        "policy",
+        "numeric"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          1
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          1
+        ]
+      ],
+      "question": "How many corrective retrieval passes are allowed in the first RAG version?",
+      "answer_text": "One corrective retrieval pass is allowed in the first RAG version. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence explicitly states that only one corrective retrieval is enough for the first version.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "DARWIN Advanced RAG Build Plan",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/action-plan/rag/README.md",
+          "page_number": null
+        }
+      ],
+      "verification_confidence_reason": "Every claim passed conservative citation checks.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.852,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0001,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "How many corrective retrieval passes are allowed in the first RAG version?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 89,
+      "context_sources": [
+        "DARWIN Advanced RAG Build Plan"
+      ],
+      "standalone_query": "How many corrective retrieval passes are allowed in the first RAG version?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "How many corrective retrieval passes are allowed in the first RAG version?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.975,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "After drafting an answer: 1. Extract its factual claims. 2. Map every claim to supporting evidence. 3. Detect missing, contradicted, or weakly supported claims. 4. Retrieve again only for a specific missing claim. 5. Regenerate or correct the answer once. 6. Remove unsupported c\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.975,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.255,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Retrieval Ablations A key feature of RAG is learning to retrieve relevant information for the task. To assess the effectiveness of the retrieval mechanism, we run ablations where we freeze the retriever during training. As shown in Table 6, learned retrieval improves results for\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.255,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.196,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "- Grade evidence as sufficient, partial, or irrelevant. - Rewrite only missing information needs. - Add one bounded retrieval retry. - Add approved web search for missing corpus information. - Abstain when no reliable evidence exists. **Result:** weak retrieval triggers controll\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.196,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.117,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 5,
+              "text": "Table 1 shows results for RAG along with state-of-the-art models. On all four open-domain QA tasks, RAG sets a new state of the art (only on the T5-comparable split for TQA). RAG combines the generation flexibility of the 'closed-book' (parametric only) approaches and the perfor\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.117,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.051,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "We compare RAG's dense retriever to a word overlap-based BM25 retriever [53]. Here, we replace RAG's retriever with a fixed BM25 system, and use BM25 retrieval scores as logits when calculating p ( z | x ) . Table 6 shows the results. For FEVER, BM25 performs best, perhaps since\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.051,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "DARWIN Advanced RAG Build Plan",
+          "page": null,
+          "direct": true,
+          "score": 0.975,
+          "text": "After drafting an answer: 1. Extract its factual claims. 2. Map every claim to supporting evidence. 3. Detect missing, contradicted, or weakly supported claims. 4. Retrieve again only for a specific missing claim. 5. Regenerate or correct the answer once. 6. Remove unsupported c\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "invoice-details",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 4.5581,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 3.8994,
+      "query_analysis_seconds": 3.4429,
+      "hybrid_retrieval_seconds": 0.093,
+      "reranking_seconds": 0.4044,
+      "grading_seconds": 0.0003,
+      "context_build_seconds": 0.0015,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "image",
+        "ocr",
+        "multi-part"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          1
+        ],
+        [
+          "ollama",
+          1
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "What is the invoice number and when is payment due?",
+      "answer_text": "Invoice Number: DARWIN-2048. Payment Due: September 30, 2026. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly provides the invoice number and payment due date.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "invoice",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/invoice.png",
+          "page_number": 1
+        }
+      ],
+      "verification_confidence_reason": "Every claim appears verbatim in its cited evidence.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "QueryDecision",
+          "provider": "ollama",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 3.4426,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.6379,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0001,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "decompose",
+      "planned_queries": [
+        "What is the invoice number?",
+        "When is payment due?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 2,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 27,
+      "context_sources": [
+        "invoice p.1"
+      ],
+      "standalone_query": "What is the invoice number and when is payment due?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "What is the invoice number?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.879,
+              "document": "157808d2edd53f0232a5f44eef346ce7bba4b3c69dc3284e38b6fa4597b89102",
+              "page": 1,
+              "text": "Invoice Number: DARWIN-2048 Total Amount: $475.25 Payment Due: September 30, 2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.879,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Table 3: Examples from generation tasks. RAG models generate more specific and factually accurate responses. '?' indicates factually incorrect responses, * indicates partially correct responses. | Task | Input | Model | Generation | |--------------------------------|------------\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 19,
+              "text": "Table 7: Number of instances in the datasets used. *A hidden subset of this data is used for evaluation | Task | Train | Development | Test | |------------------------------|---------|---------------|---------| | Natural Questions | 79169 | 8758 | 3611 | | TriviaQA | 78786 | 883\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Store searchable terms in a BM25 or full-text index. This protects exact matches such as: - names; - model numbers; - error codes; - dates; - identifiers; - uncommon technical phrases.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 11,
+              "text": "Angela Fan, Yacine Jernite, Ethan Perez, David Grangier, Jason Weston, and Michael Auli. ELI5: Long form question answering. In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics , pages 3558-3567, Florence, Italy, July 2019. Association for\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        },
+        {
+          "query": "When is payment due?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.896,
+              "document": "157808d2edd53f0232a5f44eef346ce7bba4b3c69dc3284e38b6fa4597b89102",
+              "page": 1,
+              "text": "Invoice Number: DARWIN-2048 Total Amount: $475.25 Payment Due: September 30, 2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.896,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 11,
+              "text": "Katja Grace, John Salvatier, Allan Dafoe, Baobao Zhang, and Owain Evans. When will AI exceed human performance? evidence from AI experts. CoRR , abs/1705.08807, 2017. URL http://arxiv.org/abs/1705.08807 .",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 13,
+              "text": "for Computational Linguistics , pages 6086-6096, Florence, Italy, July 2019. Association for Computational Linguistics. doi: 10.18653/v1/P19-1612. URL https://www.aclweb.org/ anthology/P19-1612 .",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 11,
+              "text": "Angela Fan, Yacine Jernite, Ethan Perez, David Grangier, Jason Weston, and Michael Auli. ELI5: Long form question answering. In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics , pages 3558-3567, Florence, Italy, July 2019. Association for\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 10,
+              "text": "Danqi Chen, Adam Fisch, Jason Weston, and Antoine Bordes. Reading Wikipedia to Answer Open-Domain Questions. In Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 1870-1879, Vancouver, Canada, July 2017. Associ\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "invoice",
+          "page": 1,
+          "direct": true,
+          "score": 0.896,
+          "text": "Invoice Number: DARWIN-2048 Total Amount: $475.25 Payment Due: September 30, 2026"
+        }
+      ]
+    },
+    {
+      "case_id": "invoice-amount",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 1.549,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.4253,
+      "query_analysis_seconds": 0.0002,
+      "hybrid_retrieval_seconds": 0.1289,
+      "reranking_seconds": 0.2822,
+      "grading_seconds": 0.0002,
+      "context_build_seconds": 0.0011,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "image",
+        "ocr",
+        "currency"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "What is the invoice total amount?",
+      "answer_text": "The invoice total amount is $475.25. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "Direct statement in the invoice evidence.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "invoice",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/invoice.png",
+          "page_number": 1
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.7032,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.4024,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0001,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "What is the invoice total amount?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 27,
+      "context_sources": [
+        "invoice p.1"
+      ],
+      "standalone_query": "What is the invoice total amount?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "What is the invoice total amount?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.994,
+              "document": "157808d2edd53f0232a5f44eef346ce7bba4b3c69dc3284e38b6fa4597b89102",
+              "page": 1,
+              "text": "Invoice Number: DARWIN-2048 Total Amount: $475.25 Payment Due: September 30, 2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.994,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Table 3: Examples from generation tasks. RAG models generate more specific and factually accurate responses. '?' indicates factually incorrect responses, * indicates partially correct responses. | Task | Input | Model | Generation | |--------------------------------|------------\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 18,
+              "text": "Our RAG models contain the trainable parameters for the BERT-base query and document encoder of DPR, with 110M parameters each (although we do not train the document encoder ourselves) and 406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainab\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 8,
+              "text": "Table 5: Ratio of distinct to total tri-grams for generation tasks. | | MSMARCO | Jeopardy QGen | |-----------|-----------|-----------------| | Gold | 89.6% | 90.0% | | BART | 70.7% | 32.4% | | RAG-Token | 77.8% | 46.8% | | RAG-Seq. | 83.5% | 53.8% |",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 8,
+              "text": "Table 5: Ratio of distinct to total tri-grams for generation tasks.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "invoice",
+          "page": 1,
+          "direct": true,
+          "score": 0.994,
+          "text": "Invoice Number: DARWIN-2048 Total Amount: $475.25 Payment Due: September 30, 2026"
+        }
+      ]
+    },
+    {
+      "case_id": "sales-east-total",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 0.071,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.0248,
+      "query_analysis_seconds": 0.0008,
+      "hybrid_retrieval_seconds": 0,
+      "reranking_seconds": 0,
+      "grading_seconds": 0,
+      "context_build_seconds": 0.0001,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "table",
+        "structured",
+        "aggregation"
+      ],
+      "provider_call_counts": [],
+      "model_outcome_counts": [],
+      "question": "What is the total Revenue for the East region?",
+      "answer_text": "The total Revenue where Region = East is 2700.5 [S1].",
+      "answer_abstained": false,
+      "confidence_reason": "The result was computed deterministically from the cited table rows.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "Regional Sales",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/sales.md",
+          "page_number": null
+        }
+      ],
+      "verification_confidence_reason": "The cited deterministic calculation matches the answer.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [],
+      "evaluation_seconds": 0.0007,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "What is the total Revenue for the East region?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 0,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 72,
+      "context_sources": [
+        "Regional Sales"
+      ],
+      "standalone_query": "What is the total Revenue for the East region?",
+      "step_back_query": null,
+      "retrieval_details": [],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "Regional Sales",
+          "page": null,
+          "direct": true,
+          "score": 1.0,
+          "text": "Deterministic table calculation Operation: sum Column: Revenue Filters: Region = East Matched rows: 2 Result: 2700.5 Input rows: Quarter: Q1 | Region: East | Revenue: $1,200.50 Quarter: Q2 | Region: East | Revenue: $1,500.00"
+        }
+      ]
+    },
+    {
+      "case_id": "sales-west-total",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 0.0628,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.01,
+      "query_analysis_seconds": 0.0004,
+      "hybrid_retrieval_seconds": 0,
+      "reranking_seconds": 0,
+      "grading_seconds": 0,
+      "context_build_seconds": 0.0002,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "table",
+        "structured",
+        "aggregation"
+      ],
+      "provider_call_counts": [],
+      "model_outcome_counts": [],
+      "question": "What is the total Revenue for the West region?",
+      "answer_text": "The total Revenue where Region = West is 900.0 [S1].",
+      "answer_abstained": false,
+      "confidence_reason": "The result was computed deterministically from the cited table rows.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "Regional Sales",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/sales.md",
+          "page_number": null
+        }
+      ],
+      "verification_confidence_reason": "The cited deterministic calculation matches the answer.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [],
+      "evaluation_seconds": 0.0001,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "What is the total Revenue for the West region?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 0,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 1,
+      "context_token_count": 51,
+      "context_sources": [
+        "Regional Sales"
+      ],
+      "standalone_query": "What is the total Revenue for the West region?",
+      "step_back_query": null,
+      "retrieval_details": [],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "Regional Sales",
+          "page": null,
+          "direct": true,
+          "score": 1.0,
+          "text": "Deterministic table calculation Operation: sum Column: Revenue Filters: Region = West Matched rows: 1 Result: 900.0 Input rows: Quarter: Q1 | Region: West | Revenue: $900.00"
+        }
+      ]
+    },
+    {
+      "case_id": "cross-document-architecture",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 6.1181,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 4.6561,
+      "query_analysis_seconds": 4.1136,
+      "hybrid_retrieval_seconds": 0.1511,
+      "reranking_seconds": 0.4586,
+      "grading_seconds": 0.0015,
+      "context_build_seconds": 0.0059,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "cross-document",
+        "multi-part",
+        "citation-recall"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          2
+        ],
+        [
+          "ollama",
+          1
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          3
+        ]
+      ],
+      "question": "Which parser should DARWIN use for PDFs, and what non-parametric memory does RAG use?",
+      "answer_text": "DARWIN should use the Docling parser for PDFs. RAG uses a dense vector index of Wikipedia as its non\u2011parametric memory. Sources: [S2] [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "Both answers are directly stated in the provided evidence.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S2",
+          "document_title": "DARWIN Advanced RAG Build Plan",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/action-plan/rag/README.md",
+          "page_number": null
+        },
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 2
+        }
+      ],
+      "verification_confidence_reason": "Every factual claim is supported by its citations.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "QueryDecision",
+          "provider": "ollama",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 4.1126,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.7854,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "VerificationDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.6428,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0015,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "decompose",
+      "planned_queries": [
+        "Which parser should DARWIN use for PDFs?",
+        "What non-parametric memory does RAG use?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 2,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 2,
+      "context_token_count": 356,
+      "context_sources": [
+        "rag-paper p.2",
+        "DARWIN Advanced RAG Build Plan"
+      ],
+      "standalone_query": "Which parser should DARWIN use for PDFs?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "Which parser should DARWIN use for PDFs?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.936,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Use LLM or vision assistance only when the normal parser detects: - broken reading order; - complex or cross-page tables; - charts whose meaning is not present in surrounding text; - handwriting; - low OCR confidence; - missing section hierarchy; - formulas that were extracted i\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.936,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.932,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Select the cheapest parser that preserves the required information: Do not send every document through an LLM. Clean text should remain deterministic, local, inexpensive, and fast.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.932,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.915,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "| Input | Primary parser | Escalation path | | --- | --- | --- | | Plain text | Native Python | None | | Markdown | Markdown-aware parser | None | | HTML/web page | Trafilatura | Docling or targeted browser extraction | | PDF | Docling | LLM/vision-assisted parsing for failed pa\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.915,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 4,
+              "score": 0.897,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "```text Documents and websites \u2502 \u25bc Parser router \u251c\u2500 Native text/Markdown parser \u251c\u2500 Trafilatura web parser \u251c\u2500 Docling PDF/Office parser \u2514\u2500 LLM/vision-assisted parser for difficult pages \u2502 \u25bc Normalized document model \u2502 \u25bc Structure-aware chunking \u2502 \u251c\u2500 child text chunks \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25ba ve\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.897,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 5,
+              "score": 0.566,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "1. **Use deterministic code for predictable work.** File detection, parsing selection, metadata validation, chunk creation, filtering, and citation assembly should not depend on an LLM. 2. **Use an LLM only where reasoning adds value.** Difficult document reconstruction, query d\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.566,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        },
+        {
+          "query": "What non-parametric memory does RAG use?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.998,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 7,
+              "text": "Index hot-swapping An advantage of non-parametric memory models like RAG is that knowledge can be easily updated at test time. Parametric-only models like T5 or BART need further training to update their behavior as the world changes. To demonstrate, we build an index using the\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.998,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.997,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 2,
+              "text": "We endow pre-trained, parametric-memory generation models with a non-parametric memory through a general-purpose fine-tuning approach which we refer to as retrieval-augmented generation (RAG). We build RAG models where the parametric memory is a pre-trained seq2seq transformer,\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.997,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.995,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 9,
+              "text": "In this work, we presented hybrid generation models with access to parametric and non-parametric memory. We showed that our RAG models obtain state of the art results on open-domain QA. We found that people prefer RAG's generation over purely parametric BART, finding RAG more fa\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.995,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.994,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 2,
+              "text": "Our results highlight the benefits of combining parametric and non-parametric memory with generation for knowledge-intensive tasks -tasks that humans could not reasonably be expected to perform without access to an external knowledge source. Our RAG models achieve state-of-the-a\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.994,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.988,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 18,
+              "text": "Our RAG models contain the trainable parameters for the BERT-base query and document encoder of DPR, with 110M parameters each (although we do not train the document encoder ourselves) and 406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainab\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.988,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 2,
+          "direct": true,
+          "score": 0.997,
+          "text": "We endow pre-trained, parametric-memory generation models with a non-parametric memory through a general-purpose fine-tuning approach which we refer to as retrieval-augmented generation (RAG). We build RAG models where the parametric memory is a pre-trained seq2seq transformer,\u2026"
+        },
+        {
+          "document": "DARWIN Advanced RAG Build Plan",
+          "page": null,
+          "direct": true,
+          "score": 0.915,
+          "text": "| Input | Primary parser | Escalation path | | --- | --- | --- | | Plain text | Native Python | None | | Markdown | Markdown-aware parser | None | | HTML/web page | Trafilatura | Docling or targeted browser extraction | | PDF | Docling | LLM/vision-assisted parsing for failed pa\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "conversation-memory",
+      "should_answer": true,
+      "retrieval_rank": 1,
+      "retrieval_answerable": true,
+      "strategy_correct": true,
+      "answer_correct": true,
+      "grounded": true,
+      "citation_precision": 100.0,
+      "verification_passed": true,
+      "abstention_correct": null,
+      "latency_seconds": 4.5911,
+      "error": null,
+      "retrieval_source_recall": 100.0,
+      "answer_completeness": 100.0,
+      "forbidden_terms_passed": true,
+      "citation_recall": 100.0,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 3.6932,
+      "query_analysis_seconds": 3.1261,
+      "hybrid_retrieval_seconds": 0.1286,
+      "reranking_seconds": 0.4318,
+      "grading_seconds": 0.0009,
+      "context_build_seconds": 0.0055,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "conversation",
+        "reference-resolution"
+      ],
+      "provider_call_counts": [
+        [
+          "groq",
+          1
+        ],
+        [
+          "ollama",
+          1
+        ]
+      ],
+      "model_outcome_counts": [
+        [
+          "success",
+          2
+        ]
+      ],
+      "question": "What about its non-parametric memory?",
+      "answer_text": "Its non\u2011parametric memory is a dense vector index of Wikipedia that is accessed with a pre\u2011trained neural retriever. Sources: [S1]",
+      "answer_abstained": false,
+      "confidence_reason": "The evidence directly describes the non\u2011parametric memory as a dense vector index of Wikipedia accessed via a neural retriever.",
+      "unsupported_claims": [],
+      "missing_fact_groups": [],
+      "citations": [
+        {
+          "citation_id": "S1",
+          "document_title": "rag-paper",
+          "source_uri": "/Users/ashishkarigar/Projects/Miscellanious/DARWIN/data/ragv2/samples/rag-paper.pdf",
+          "page_number": 2
+        }
+      ],
+      "verification_confidence_reason": "Every claim passed conservative citation checks.",
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "generate",
+        "verify",
+        "finalize"
+      ],
+      "model_calls": [
+        {
+          "schema": "QueryDecision",
+          "provider": "ollama",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 3.1254,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        },
+        {
+          "schema": "AnswerDraft",
+          "provider": "groq",
+          "outcome": "success",
+          "attempt": 1,
+          "elapsed_seconds": 0.8614,
+          "used_fallback": false,
+          "error_type": null,
+          "error_message": null,
+          "retry_after_seconds": null
+        }
+      ],
+      "evaluation_seconds": 0.0011,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "conversation",
+      "planned_queries": [
+        "What non-parametric memory does retrieval-augmented generation use?"
+      ],
+      "unanswered_queries": [],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 2,
+      "context_token_count": 531,
+      "context_sources": [
+        "rag-paper p.2",
+        "rag-paper p.1"
+      ],
+      "standalone_query": "What non-parametric memory does retrieval-augmented generation use?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "What non-parametric memory does retrieval-augmented generation use?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.998,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 2,
+              "text": "We endow pre-trained, parametric-memory generation models with a non-parametric memory through a general-purpose fine-tuning approach which we refer to as retrieval-augmented generation (RAG). We build RAG models where the parametric memory is a pre-trained seq2seq transformer,\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.998,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 2,
+              "score": 0.97,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "Large pre-trained language models have been shown to store factual knowledge in their parameters, and achieve state-of-the-art results when fine-tuned on downstream NLP tasks. However, their ability to access and precisely manipulate knowledge is still limited, and hence on know\u2026",
+              "relevant": true,
+              "direct": true,
+              "grade": 0.97,
+              "reason": "The bounded local evidence checks found the question anchors and an answer-shaped statement."
+            },
+            {
+              "rank": 3,
+              "score": 0.969,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 9,
+              "text": "In this work, we presented hybrid generation models with access to parametric and non-parametric memory. We showed that our RAG models obtain state of the art results on open-domain QA. We found that people prefer RAG's generation over purely parametric BART, finding RAG more fa\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.969,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.926,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 2,
+              "text": "Our results highlight the benefits of combining parametric and non-parametric memory with generation for knowledge-intensive tasks -tasks that humans could not reasonably be expected to perform without access to an external knowledge source. Our RAG models achieve state-of-the-a\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.926,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.526,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 1,
+              "text": "Patrick Lewis \u2020\u2021 , Ethan Perez \u22c6 ,",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.526,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": [
+        {
+          "document": "rag-paper",
+          "page": 2,
+          "direct": true,
+          "score": 0.998,
+          "text": "We endow pre-trained, parametric-memory generation models with a non-parametric memory through a general-purpose fine-tuning approach which we refer to as retrieval-augmented generation (RAG). We build RAG models where the parametric memory is a pre-trained seq2seq transformer,\u2026"
+        },
+        {
+          "document": "rag-paper",
+          "page": 1,
+          "direct": true,
+          "score": 0.97,
+          "text": "Large pre-trained language models have been shown to store factual knowledge in their parameters, and achieve state-of-the-art results when fine-tuned on downstream NLP tasks. However, their ability to access and precisely manipulate knowledge is still limited, and hence on know\u2026"
+        }
+      ]
+    },
+    {
+      "case_id": "missing-password",
+      "should_answer": false,
+      "retrieval_rank": null,
+      "retrieval_answerable": false,
+      "strategy_correct": true,
+      "answer_correct": false,
+      "grounded": false,
+      "citation_precision": 0.0,
+      "verification_passed": true,
+      "abstention_correct": true,
+      "latency_seconds": 0.5199,
+      "error": null,
+      "retrieval_source_recall": null,
+      "answer_completeness": null,
+      "forbidden_terms_passed": null,
+      "citation_recall": null,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.5024,
+      "query_analysis_seconds": 0.0004,
+      "hybrid_retrieval_seconds": 0.1405,
+      "reranking_seconds": 0.3609,
+      "grading_seconds": 0.0002,
+      "context_build_seconds": 0.0,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "no-answer",
+        "security"
+      ],
+      "provider_call_counts": [],
+      "model_outcome_counts": [],
+      "question": "What is DARWIN's administrator password?",
+      "answer_text": "I don't have enough reliable evidence to answer that question.",
+      "answer_abstained": true,
+      "confidence_reason": "The bounded retrieval and verification path did not find complete, supported evidence.",
+      "unsupported_claims": [
+        "What is DARWIN's administrator password?"
+      ],
+      "missing_fact_groups": [],
+      "citations": [],
+      "verification_confidence_reason": null,
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "abstain",
+        "finalize"
+      ],
+      "model_calls": [],
+      "evaluation_seconds": 0.0,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "What is DARWIN's administrator password?"
+      ],
+      "unanswered_queries": [
+        "What is DARWIN's administrator password?"
+      ],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 0,
+      "context_token_count": 0,
+      "context_sources": [],
+      "standalone_query": "What is DARWIN's administrator password?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "What is DARWIN's administrator password?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.001,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "The following are intentionally excluded from the current build sequence and will be handled after the advanced RAG core works: - queues, retries, and recovery; - index and document versioning; - caching and latency monitoring; - retrieval and answer-accuracy evaluation; - secur\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.001,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "1. **Use deterministic code for predictable work.** File detection, parsing selection, metadata validation, chunk creation, filtering, and citation assembly should not depend on an LLM. 2. **Use an LLM only where reasoning adds value.** Difficult document reconstruction, query d\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "If web search is permitted for the request, perform a targeted search and grade those results. Otherwise abstain.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Generate a broader question when background knowledge is necessary to answer a narrow question. ```text Original: Why does DARWIN combine dense and keyword retrieval? Step back: What are the strengths and weaknesses of dense and keyword retrieval? ``` Use decomposition and step-\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Build DARWIN's current basic RAG into an advanced, grounded RAG system that can: - understand several document formats; - preserve document structure and source information; - index multiple representations of the same information; - understand, rewrite, and decompose complex qu\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": []
+    },
+    {
+      "case_id": "missing-invoice-tax",
+      "should_answer": false,
+      "retrieval_rank": null,
+      "retrieval_answerable": false,
+      "strategy_correct": true,
+      "answer_correct": false,
+      "grounded": false,
+      "citation_precision": 0.0,
+      "verification_passed": true,
+      "abstention_correct": true,
+      "latency_seconds": 0.3648,
+      "error": null,
+      "retrieval_source_recall": null,
+      "answer_completeness": null,
+      "forbidden_terms_passed": null,
+      "citation_recall": null,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.3471,
+      "query_analysis_seconds": 0.0003,
+      "hybrid_retrieval_seconds": 0.0757,
+      "reranking_seconds": 0.2702,
+      "grading_seconds": 0.0007,
+      "context_build_seconds": 0.0,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "no-answer",
+        "near-miss"
+      ],
+      "provider_call_counts": [],
+      "model_outcome_counts": [],
+      "question": "How much tax was charged on invoice DARWIN-2048?",
+      "answer_text": "I don't have enough reliable evidence to answer that question.",
+      "answer_abstained": true,
+      "confidence_reason": "The bounded retrieval and verification path did not find complete, supported evidence.",
+      "unsupported_claims": [
+        "How much tax was charged on invoice DARWIN-2048?"
+      ],
+      "missing_fact_groups": [],
+      "citations": [],
+      "verification_confidence_reason": null,
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "abstain",
+        "finalize"
+      ],
+      "model_calls": [],
+      "evaluation_seconds": 0.0,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "How much tax was charged on invoice DARWIN-2048?"
+      ],
+      "unanswered_queries": [
+        "How much tax was charged on invoice DARWIN-2048?"
+      ],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 0,
+      "context_token_count": 0,
+      "context_sources": [],
+      "standalone_query": "How much tax was charged on invoice DARWIN-2048?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "How much tax was charged on invoice DARWIN-2048?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.994,
+              "document": "157808d2edd53f0232a5f44eef346ce7bba4b3c69dc3284e38b6fa4597b89102",
+              "page": 1,
+              "text": "Invoice Number: DARWIN-2048 Total Amount: $475.25 Payment Due: September 30, 2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.994,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Convert references such as \u201cWhat about its price?\u201d into a standalone question using the relevant conversation context.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Proceed to grounded generation.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "Identify the missing fact, rewrite only that query, and retrieve one additional time.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "- Extract claims from the draft. - Check claim-to-evidence support. - Search once for a specific unsupported claim. - Correct, remove, or abstain. **Result:** the final answer contains no silently unsupported factual claims.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": []
+    },
+    {
+      "case_id": "missing-sales-region",
+      "should_answer": false,
+      "retrieval_rank": null,
+      "retrieval_answerable": false,
+      "strategy_correct": true,
+      "answer_correct": false,
+      "grounded": false,
+      "citation_precision": 0.0,
+      "verification_passed": true,
+      "abstention_correct": true,
+      "latency_seconds": 0.4737,
+      "error": null,
+      "retrieval_source_recall": null,
+      "answer_completeness": null,
+      "forbidden_terms_passed": null,
+      "citation_recall": null,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.4556,
+      "query_analysis_seconds": 0.0004,
+      "hybrid_retrieval_seconds": 0.0974,
+      "reranking_seconds": 0.3509,
+      "grading_seconds": 0.0002,
+      "context_build_seconds": 0.0,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "no-answer",
+        "structured",
+        "near-miss"
+      ],
+      "provider_call_counts": [],
+      "model_outcome_counts": [],
+      "question": "What is the total Revenue for the North region?",
+      "answer_text": "I don't have enough reliable evidence to answer that question.",
+      "answer_abstained": true,
+      "confidence_reason": "The bounded retrieval and verification path did not find complete, supported evidence.",
+      "unsupported_claims": [
+        "What is the total Revenue for the North region?"
+      ],
+      "missing_fact_groups": [],
+      "citations": [],
+      "verification_confidence_reason": null,
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "abstain",
+        "finalize"
+      ],
+      "model_calls": [],
+      "evaluation_seconds": 0.0,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "What is the total Revenue for the North region?"
+      ],
+      "unanswered_queries": [
+        "What is the total Revenue for the North region?"
+      ],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 0,
+      "context_token_count": 0,
+      "context_sources": [],
+      "standalone_query": "What is the total Revenue for the North region?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "What is the total Revenue for the North region?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.098,
+              "document": "f452f8390423743d2dc90a9c4096bb3bf48a2f694c3db325350e300db1867a31",
+              "page": null,
+              "text": "| Region | Quarter | Revenue | | --- | --- | ---: | | East | Q1 | $1,200.50 | | West | Q1 | $900.00 | | East | Q2 | $1,500.00 |",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.098,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.0,
+              "document": "157808d2edd53f0232a5f44eef346ce7bba4b3c69dc3284e38b6fa4597b89102",
+              "page": 1,
+              "text": "Invoice Number: DARWIN-2048 Total Amount: $475.25 Payment Due: September 30, 2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.0,
+              "document": "f452f8390423743d2dc90a9c4096bb3bf48a2f694c3db325350e300db1867a31",
+              "page": null,
+              "text": "Regional Sales",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 13,
+              "text": "Jiwei Li, Michel Galley, Chris Brockett, Jianfeng Gao, and Bill Dolan. A diversity-promoting objective function for neural conversation models. In Proceedings of the 2016 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Te\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.0,
+              "document": "6dd32ca10149c71b11c53a3c2317a14108b81d4e9b184d44b35cbbcab197da88",
+              "page": 11,
+              "text": "Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. In Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Languag\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": []
+    },
+    {
+      "case_id": "missing-clinical-trial",
+      "should_answer": false,
+      "retrieval_rank": null,
+      "retrieval_answerable": false,
+      "strategy_correct": true,
+      "answer_correct": false,
+      "grounded": false,
+      "citation_precision": 0.0,
+      "verification_passed": true,
+      "abstention_correct": true,
+      "latency_seconds": 0.3042,
+      "error": null,
+      "retrieval_source_recall": null,
+      "answer_completeness": null,
+      "forbidden_terms_passed": null,
+      "citation_recall": null,
+      "false_abstention": false,
+      "false_answer": false,
+      "latency_budget_passed": true,
+      "retrieval_latency_seconds": 0.2958,
+      "query_analysis_seconds": 0.0003,
+      "hybrid_retrieval_seconds": 0.0714,
+      "reranking_seconds": 0.2238,
+      "grading_seconds": 0.0002,
+      "context_build_seconds": 0.0,
+      "correction_seconds": null,
+      "provider_failure_count": 0,
+      "schema_invalid_count": 0,
+      "fallback_used_count": 0,
+      "tags": [
+        "no-answer",
+        "hallucination"
+      ],
+      "provider_call_counts": [],
+      "model_outcome_counts": [],
+      "question": "Which clinical trial proved that DARWIN cures migraines?",
+      "answer_text": "I don't have enough reliable evidence to answer that question.",
+      "answer_abstained": true,
+      "confidence_reason": "The bounded retrieval and verification path did not find complete, supported evidence.",
+      "unsupported_claims": [
+        "Which clinical trial proved that DARWIN cures migraines?"
+      ],
+      "missing_fact_groups": [],
+      "citations": [],
+      "verification_confidence_reason": null,
+      "verification_unsupported_claims": [],
+      "verification_contradicted_claims": [],
+      "route_history": [
+        "retrieve",
+        "abstain",
+        "finalize"
+      ],
+      "model_calls": [],
+      "evaluation_seconds": 0.0,
+      "evaluation_model_calls": [],
+      "error_message": null,
+      "query_strategy": "direct",
+      "planned_queries": [
+        "Which clinical trial proved that DARWIN cures migraines?"
+      ],
+      "unanswered_queries": [
+        "Which clinical trial proved that DARWIN cures migraines?"
+      ],
+      "retrieval_trace_count": 1,
+      "correction_targets": [],
+      "rewritten_queries": [],
+      "context_item_count": 0,
+      "context_token_count": 0,
+      "context_sources": [],
+      "standalone_query": "Which clinical trial proved that DARWIN cures migraines?",
+      "step_back_query": null,
+      "retrieval_details": [
+        {
+          "query": "Which clinical trial proved that DARWIN cures migraines?",
+          "candidate_count": 20,
+          "hits": [
+            {
+              "rank": 1,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "After reranking, grade the evidence as one of: ```text SUFFICIENT PARTIAL IRRELEVANT ```",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 2,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "If document retrieval and web search both fail, DARWIN must not fabricate a sourced answer from model memory. It should say that reliable evidence was not found. A general model-knowledge answer may be offered only when clearly labelled as unverified and the user requests it.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 3,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "- Extract claims from the draft. - Check claim-to-evidence support. - Search once for a specific unsupported claim. - Correct, remove, or abstain. **Result:** the final answer contains no silently unsupported factual claims.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 4,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "- Generate from a structured evidence bundle. - Attach document/page/URL citations. - Detect conflicting sources. - Return partial answers when only part of a question is supported. **Result:** factual claims can be traced back to their evidence.",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            },
+            {
+              "rank": 5,
+              "score": 0.0,
+              "document": "e9c59677f08a0521667a2c0627e73c78b9aaa06bb343358d3457ad75cea7905c",
+              "page": null,
+              "text": "- Grade evidence as sufficient, partial, or irrelevant. - Rewrite only missing information needs. - Add one bounded retrieval retry. - Add approved web search for missing corpus information. - Abstain when no reliable evidence exists. **Result:** weak retrieval triggers controll\u2026",
+              "relevant": false,
+              "direct": false,
+              "grade": 0.0,
+              "reason": "The local cross-encoder rejected the passage."
+            }
+          ]
+        }
+      ],
+      "correction_details": [],
+      "context_details": []
+    }
+  ],
+  "retrieval_source_recall_percent": 100.0,
+  "retrieval_answerability_percent": 100.0,
+  "answer_completeness_percent": 100.0,
+  "citation_recall_percent": 100.0,
+  "false_abstention_rate_percent": 0.0,
+  "false_answer_rate_percent": 0.0,
+  "latency_budget_pass_percent": 100.0,
+  "average_retrieval_latency_seconds": 0.9984,
+  "provider_failure_count": 0,
+  "schema_invalid_count": 0,
+  "fallback_used_count": 0,
+  "passed_quality_gates": true,
+  "failed_quality_gates": [],
+  "category_results": {
+    "aggregation": {
+      "case_count": 2,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 0.0669
+    },
+    "architecture": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 0.948
+    },
+    "attribution": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 4.3831
+    },
+    "citation-recall": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 6.1181
+    },
+    "comparison": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 2.7395
+    },
+    "completeness": {
+      "case_count": 2,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 1.9568
+    },
+    "conversation": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 4.5911
+    },
+    "cross-document": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 6.1181
+    },
+    "currency": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 1.549
+    },
+    "factual": {
+      "case_count": 2,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 1.0142
+    },
+    "hallucination": {
+      "case_count": 1,
+      "answer_accuracy_percent": null,
+      "retrieval_source_recall_percent": 0.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": 100.0,
+      "average_latency_seconds": 0.3042
+    },
+    "image": {
+      "case_count": 2,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 3.0535
+    },
+    "markdown": {
+      "case_count": 4,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 2.041
+    },
+    "multi-evidence": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 4.3831
+    },
+    "multi-fact": {
+      "case_count": 3,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 2.3556
+    },
+    "multi-part": {
+      "case_count": 2,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 5.3381
+    },
+    "near-miss": {
+      "case_count": 2,
+      "answer_accuracy_percent": null,
+      "retrieval_source_recall_percent": 0.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": 100.0,
+      "average_latency_seconds": 0.4193
+    },
+    "no-answer": {
+      "case_count": 4,
+      "answer_accuracy_percent": null,
+      "retrieval_source_recall_percent": 0.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": 100.0,
+      "average_latency_seconds": 0.4157
+    },
+    "numeric": {
+      "case_count": 2,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 1.372
+    },
+    "ocr": {
+      "case_count": 2,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 3.0535
+    },
+    "paraphrase": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 1.0804
+    },
+    "pdf": {
+      "case_count": 9,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 2.1537
+    },
+    "policy": {
+      "case_count": 4,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 2.041
+    },
+    "reasoning": {
+      "case_count": 3,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 2.5208
+    },
+    "reference-resolution": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 4.5911
+    },
+    "security": {
+      "case_count": 1,
+      "answer_accuracy_percent": null,
+      "retrieval_source_recall_percent": 0.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": 100.0,
+      "average_latency_seconds": 0.5199
+    },
+    "source-quality": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 1.9178
+    },
+    "step-back": {
+      "case_count": 1,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 2.2074
+    },
+    "structured": {
+      "case_count": 3,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": 100.0,
+      "average_latency_seconds": 0.2025
+    },
+    "table": {
+      "case_count": 2,
+      "answer_accuracy_percent": 100.0,
+      "retrieval_source_recall_percent": 100.0,
+      "strategy_accuracy_percent": 100.0,
+      "no_answer_rejection_percent": null,
+      "average_latency_seconds": 0.0669
+    }
+  },
+  "execution_success_percent": 100.0,
+  "model_call_count": 30,
+  "provider_call_counts": {
+    "groq": 27,
+    "ollama": 3
+  },
+  "model_outcome_counts": {
+    "success": 30
+  },
+  "strategy_accuracy_percent": 100.0,
+  "terminated_early": false,
+  "termination_reason": null,
+  "completed_case_count": 23
+}

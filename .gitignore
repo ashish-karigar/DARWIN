@@ -3,10 +3,14 @@ __pycache__/
 *.egg-info/
 .idea/
 data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
 data/models/
 data/voice_profiles/
 data/auth/
 data/telemetry/
+data/logs/
+data/Media/
 .env
 training/
 node_modules/
@@ -16,6 +20,7 @@ node_modules/
 data/chroma/
 data/chroma_v2/
 data/ragv2/indexes/
+data/ragv2/benchmarks/
 data/ragv2/industry_benchmarks/indexes/
 data/ragv2/industry_benchmarks/runs/
 data/ragv2/industry_benchmarks/reports/
@@ -24,3 +29,8 @@ data/external/
 src/app/rag/data/chroma/
 data/*.wav
 data/evaluation/*_latest.json
+data/ragv2/evaluation/*_latest.json
+data/ragv2/evaluation/failed*.json
+data/ragv2/evaluation/*_failed_retry.json
+data/ragv2/evaluation/plan_verification.json
+data/ragv2/RAG-Darwin.drawio-2.pdf
