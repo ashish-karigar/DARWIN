@@ -1,10 +1,12 @@
 import pytest
+from threading import Barrier
 
 from app.ragv2.config import RagSettings
 from app.ragv2.contracts import (
     Chunk,
     ContentType,
     ContextBundle,
+    ContextItem,
     EvidenceGrade,
     RetrievalHit,
     QueryAnalysis,
@@ -90,6 +92,34 @@ class FakeContextBuilder:
             has_direct_evidence=True,
         )
 
+    def merge(self, query, bundles):
+        self.events.append("merge")
+        items = tuple(
+            item
+            for bundle in bundles
+            for item in bundle.items
+        )
+        return ContextBundle(
+            query=query,
+            items=items,
+            total_tokens=sum(
+                bundle.total_tokens for bundle in bundles
+            ),
+            has_direct_evidence=any(
+                bundle.has_direct_evidence for bundle in bundles
+            ),
+        )
+
+
+class FakeStructuredQueryEngine:
+    def __init__(self, context):
+        self.context = context
+        self.calls = []
+
+    def retrieve(self, query):
+        self.calls.append(query)
+        return self.context.model_copy(update={"query": query})
+
 
 def create_pipeline(events):
     hit = create_hit()
@@ -160,6 +190,50 @@ def test_rejects_empty_query_before_running_stages():
         pipeline.retrieve("   ")
 
     assert events == []
+
+
+def test_structured_answer_skips_semantic_retrieval():
+    events = []
+    hybrid = FakeHybridRetriever(create_hit(), events)
+    context = ContextBundle(
+        query="placeholder",
+        items=(
+            ContextItem(
+                parent_id="table-1",
+                document_id="sales",
+                document_title="Sales",
+                text="Result: 2700.5",
+                content_type=ContentType.TABLE,
+                source_uri="/sales.md",
+                supporting_chunk_ids=("structured:table-1",),
+                relevance_score=1.0,
+                directly_answers=True,
+                expanded_from_parent=False,
+            ),
+        ),
+        total_tokens=3,
+        has_direct_evidence=True,
+    )
+    structured = FakeStructuredQueryEngine(context)
+
+    result = RetrievalPipeline(
+        hybrid_retriever=hybrid,
+        reranker=FakeReranker(events),
+        evidence_grader=FakeEvidenceGrader(
+            create_grade(create_hit()),
+            events,
+        ),
+        context_builder=FakeContextBuilder(events),
+        structured_query_engine=structured,
+    ).retrieve("What is the total Revenue for East?")
+
+    assert result.fully_answerable is True
+    assert result.context.items[0].text == "Result: 2700.5"
+    assert result.traces == ()
+    assert hybrid.calls == []
+    assert structured.calls == [
+        "What is the total Revenue for East?"
+    ]
 
 class FixedQueryAnalyzer:
     def __init__(self, analysis):
@@ -273,6 +347,58 @@ def test_reports_unanswered_decomposed_subquery():
     assert not result.fully_answerable
 
 
+def test_decomposed_candidate_searches_run_in_parallel():
+    first_query = "First information need"
+    second_query = "Second information need"
+    barrier = Barrier(2, timeout=1)
+
+    class ConcurrentRetriever:
+        def search(self, query, limit):
+            barrier.wait()
+            return (create_named_hit(query),)
+
+    analysis = QueryAnalysis(
+        original_query="Compare two things",
+        standalone_query="Compare two things",
+        strategy=QueryStrategy.DECOMPOSE,
+        subqueries=(first_query, second_query),
+    )
+    pipeline = RetrievalPipeline(
+        query_analyzer=FixedQueryAnalyzer(analysis),
+        hybrid_retriever=ConcurrentRetriever(),
+        reranker=FakeReranker([]),
+        evidence_grader=QueryAwareEvidenceGrader(
+            direct_queries={first_query, second_query}
+        ),
+        context_builder=FakeContextBuilder([]),
+        rag_settings=RagSettings(retrieval_parallel_workers=2),
+    )
+
+    result = pipeline.retrieve(analysis.original_query)
+
+    assert tuple(trace.query for trace in result.traces) == (
+        first_query,
+        second_query,
+    )
+
+
+def test_direct_retrieval_skips_query_analysis():
+    analysis = QueryAnalysis(
+        original_query="unused",
+        standalone_query="unused",
+        strategy=QueryStrategy.DIRECT,
+    )
+    analyzer = FixedQueryAnalyzer(analysis)
+    pipeline, _ = create_pipeline([])
+    pipeline.query_analyzer = analyzer
+
+    result = pipeline.retrieve_direct("Already rewritten query")
+
+    assert analyzer.calls == []
+    assert result.analysis.strategy == QueryStrategy.DIRECT
+    assert result.analysis.standalone_query == "Already rewritten query"
+
+
 def test_step_back_support_is_not_required_direct_evidence():
     specific_query = (
         "Why does RAG reduce hallucination?"
@@ -308,8 +434,43 @@ def test_step_back_support_is_not_required_direct_evidence():
 
     result = pipeline.retrieve(specific_query)
 
-    assert len(result.traces) == 2
+    assert len(result.traces) == 1
     assert len(result.candidates) == 1
     assert len(result.grades) == 1
+    assert result.fully_answerable
+    assert result.unanswered_queries == ()
+
+
+def test_step_back_search_runs_when_specific_query_lacks_answer():
+    specific_query = "Why does RAG help?"
+    background_query = "How does retrieval grounding work?"
+    analysis = QueryAnalysis(
+        original_query=specific_query,
+        standalone_query=specific_query,
+        strategy=QueryStrategy.STEP_BACK,
+        step_back_query=background_query,
+    )
+    hybrid = QueryAwareHybridRetriever(
+        {
+            specific_query: (create_named_hit("specific"),),
+            background_query: (create_named_hit("background"),),
+        }
+    )
+    pipeline = RetrievalPipeline(
+        query_analyzer=FixedQueryAnalyzer(analysis),
+        hybrid_retriever=hybrid,
+        reranker=FakeReranker([]),
+        evidence_grader=QueryAwareEvidenceGrader(
+            direct_queries={background_query}
+        ),
+        context_builder=FakeContextBuilder([]),
+    )
+
+    result = pipeline.retrieve(specific_query)
+
+    assert [trace.query for trace in result.traces] == [
+        specific_query,
+        background_query,
+    ]
     assert result.fully_answerable
     assert result.unanswered_queries == ()

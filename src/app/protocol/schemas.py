@@ -159,8 +159,39 @@ class SessionHello(WireMessage):
 
 class AssistantRequest(WireMessage):
     type: Literal["assistant.request"]
-    session_id: str = Field(alias="sessionId", min_length=1, max_length=128)
+    session_id: str = Field(
+        alias="sessionId",
+        pattern=r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+        min_length=1,
+        max_length=128,
+    )
     content: str = Field(min_length=1, max_length=50_000)
+
+
+class AssistantListen(WireMessage):
+    type: Literal["assistant.listen"]
+    session_id: str = Field(
+        alias="sessionId",
+        pattern=r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+        min_length=1,
+        max_length=128,
+    )
+
+
+class AssistantWake(WireMessage):
+    type: Literal["assistant.wake"]
+    session_id: str = Field(
+        alias="sessionId",
+        pattern=r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+        min_length=1,
+        max_length=128,
+    )
+    enabled: bool
+
+
+class MediaControl(WireMessage):
+    type: Literal["media.control"]
+    action: Literal["pause", "resume", "next", "previous"]
 
 
 class AssistantCancel(WireMessage):
@@ -175,7 +206,13 @@ class ConfirmationResponse(WireMessage):
 
 
 ClientMessage = Annotated[
-    SessionHello | AssistantRequest | AssistantCancel | ConfirmationResponse,
+    SessionHello
+    | AssistantRequest
+    | AssistantListen
+    | AssistantWake
+    | MediaControl
+    | AssistantCancel
+    | ConfirmationResponse,
     Field(discriminator="type"),
 ]
 
@@ -201,11 +238,66 @@ class AssistantAudioLevel(WireMessage):
     level: float = Field(ge=0, le=1)
 
 
+class AssistantVoicePlayback(WireMessage):
+    type: Literal["assistant.voice-playback"]
+    active: bool
+
+
+class AssistantActivity(WireMessage):
+    type: Literal["assistant.activity"]
+    request_id: UUID = Field(alias="requestId")
+    skill: str = Field(pattern=r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$", max_length=80)
+    phase: Literal["started", "completed", "failed"]
+
+
+class CameraCommand(WireMessage):
+    type: Literal["camera.command"]
+    request_id: UUID = Field(alias="requestId")
+    action: Literal[
+        "open",
+        "close",
+        "capture",
+        "camera.next",
+        "camera.previous",
+        "detection.start",
+        "detection.stop",
+        "mirror.on",
+        "mirror.off",
+        "mirror.toggle",
+    ]
+
+
+class AppCommand(WireMessage):
+    type: Literal["app.command"]
+    request_id: UUID = Field(alias="requestId")
+    app_id: str = Field(alias="appId", pattern=r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$", max_length=128)
+    action: Literal["open", "close"]
+
+
 class AssistantResponse(WireMessage):
     type: Literal["assistant.response"]
     request_id: UUID = Field(alias="requestId")
     content: str = Field(max_length=100_000)
     final: bool
+
+
+class AssistantTranscription(WireMessage):
+    type: Literal["assistant.transcription"]
+    request_id: UUID = Field(alias="requestId")
+    content: str = Field(max_length=50_000)
+    final: bool
+
+
+class MediaNowPlaying(WireMessage):
+    type: Literal["media.now-playing"]
+    provider: Literal["spotify", "apple_music", "other"]
+    title: str
+    artist: str
+    album: str
+    artwork_url: str | None = Field(alias="artworkUrl")
+    duration_ms: int = Field(alias="durationMs", ge=0)
+    progress_ms: int = Field(alias="progressMs", ge=0)
+    is_playing: bool = Field(alias="isPlaying")
 
 
 class ConfirmationRequired(WireMessage):
@@ -229,7 +321,13 @@ ServerMessage = Annotated[
     SessionReady
     | AssistantState
     | AssistantAudioLevel
+    | AssistantVoicePlayback
+    | AssistantActivity
+    | CameraCommand
+    | AppCommand
     | AssistantResponse
+    | AssistantTranscription
+    | MediaNowPlaying
     | ConfirmationRequired
     | ErrorMessage,
     Field(discriminator="type"),

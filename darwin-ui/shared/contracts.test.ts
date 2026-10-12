@@ -5,6 +5,7 @@ import {
   appManifestSchema,
   darwinInputEventSchema,
   parseClientMessage,
+  parseServerMessage,
   windowStateSchema
 } from './contracts'
 
@@ -105,6 +106,24 @@ describe('wire protocol', () => {
     expect(message.type).toBe('assistant.request')
   })
 
+  it('accepts a voice request and transcription response', () => {
+    const request = parseClientMessage({
+      ...messageBase,
+      type: 'assistant.listen',
+      sessionId: 'desktop'
+    })
+    const transcription = parseServerMessage({
+      ...messageBase,
+      type: 'assistant.transcription',
+      requestId: '96f4fa43-b421-42bc-a2da-297c793b6ea8',
+      content: 'camera status',
+      final: true
+    })
+
+    expect(request.type).toBe('assistant.listen')
+    expect(transcription.type).toBe('assistant.transcription')
+  })
+
   it('rejects malformed messages', () => {
     expect(() =>
       parseClientMessage({
@@ -126,5 +145,17 @@ describe('wire protocol', () => {
         content: 'Status report.'
       })
     ).toThrow(UnsupportedProtocolVersionError)
+  })
+
+  it('accepts correlated assistant skill activity', () => {
+    const message = parseServerMessage({
+      ...messageBase,
+      type: 'assistant.activity',
+      requestId: '96f4fa43-b421-42bc-a2da-297c793b6ea8',
+      skill: 'weather',
+      phase: 'started'
+    })
+
+    expect(message.type).toBe('assistant.activity')
   })
 })

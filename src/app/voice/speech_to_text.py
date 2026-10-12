@@ -1,13 +1,18 @@
 from collections import deque
+from collections.abc import Callable
+from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import ExitStack, nullcontext, redirect_stdout
 from dataclasses import dataclass
 from io import StringIO
 import os
+import math
 from pathlib import Path
 import time
+from threading import Event, Lock
 
 import numpy as np
 import sounddevice as sd
+from dotenv import load_dotenv
 from faster_whisper import WhisperModel
 from scipy.io.wavfile import write
 
@@ -26,11 +31,17 @@ SILENCE_SECONDS = 0.6
 
 AUDIO_PATH = Path("data/input.wav")
 
+load_dotenv()
+
 whisper_model = WhisperModel(
     os.getenv("DARWIN_WHISPER_MODEL", "small.en"),
-    device="cpu",
-    compute_type="int8",
+    device=os.getenv("DARWIN_WHISPER_DEVICE", "cpu"),
+    compute_type=os.getenv("DARWIN_WHISPER_COMPUTE_TYPE", "int8"),
 )
+_whisper_lock = Lock()
+_warmup_lock = Lock()
+_warmed_up = False
+_last_recorded_audio: np.ndarray | None = None
 
 _last_input_timing = {
     "recording_seconds": None,
@@ -76,6 +87,23 @@ def get_last_input_timing() -> dict[str, float | None]:
     return _last_input_timing.copy()
 
 
+def warm_stt_model() -> None:
+    """Pay lazy model initialization at backend startup, not on the first turn."""
+    global _warmed_up
+    if _warmed_up or os.getenv("DARWIN_WHISPER_WARMUP", "true").casefold() not in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
+        return
+    with _warmup_lock:
+        if _warmed_up:
+            return
+        transcribe_audio(np.zeros(SAMPLE_RATE // 10, dtype=np.float32))
+        _warmed_up = True
+
+
 def calculate_rms(audio: np.ndarray) -> float:
     samples = audio.astype(np.float32)
     return float(np.sqrt(np.mean(samples**2)))
@@ -89,7 +117,12 @@ def record_until_silence(
     announce: bool = True,
     input_stream=None,
     manage_audio_focus: bool = False,
+    cancel_event: Event | None = None,
+    endpoint_candidate_callback: Callable[[np.ndarray], None] | None = None,
+    endpoint_candidate_invalidated: Callable[[], None] | None = None,
 ) -> Path | None:
+    global _last_recorded_audio
+    _last_recorded_audio = None
     if announce:
         print("Listening...")
 
@@ -102,6 +135,15 @@ def record_until_silence(
     displayed_level = 0.0
 
     required_silent_blocks = int(silence_seconds / BLOCK_DURATION)
+    prefetch_silence_seconds = max(
+        BLOCK_DURATION,
+        float(os.getenv("DARWIN_STT_PREFETCH_SILENCE_SECONDS", "0.24")),
+    )
+    prefetch_silent_blocks = min(
+        required_silent_blocks,
+        max(1, math.ceil(prefetch_silence_seconds / BLOCK_DURATION)),
+    )
+    endpoint_candidate_active = False
 
     stream_context = (
         nullcontext(input_stream)
@@ -118,7 +160,13 @@ def record_until_silence(
         recording_started = None
 
         while True:
+            if cancel_event is not None and cancel_event.is_set():
+                publish_ui_audio_level(0.0)
+                return None
             block, _ = stream.read(BLOCK_SIZE)
+            if cancel_event is not None and cancel_event.is_set():
+                publish_ui_audio_level(0.0)
+                return None
             activity = speech_detector.process(block)
             raw_level = min(1.0, calculate_rms(block) / 4_000.0)
             weighted_level = raw_level * (0.35 + activity.probability * 0.65)
@@ -152,7 +200,19 @@ def record_until_silence(
             if not activity.is_speech:
                 silent_blocks += 1
             else:
+                if endpoint_candidate_active:
+                    endpoint_candidate_active = False
+                    if endpoint_candidate_invalidated is not None:
+                        endpoint_candidate_invalidated()
                 silent_blocks = 0
+
+            if (
+                endpoint_candidate_callback is not None
+                and not endpoint_candidate_active
+                and silent_blocks == prefetch_silent_blocks
+            ):
+                endpoint_candidate_active = True
+                endpoint_candidate_callback(np.concatenate(frames, axis=0))
 
             recording_duration = time.monotonic() - recording_started
 
@@ -165,20 +225,34 @@ def record_until_silence(
     publish_ui_audio_level(0.0)
 
     audio = np.concatenate(frames, axis=0)
+    _last_recorded_audio = audio.copy()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     write(output_path, SAMPLE_RATE, audio)
 
     return output_path
 
 
-def transcribe_audio(audio_path: Path) -> str:
-    segments, _ = whisper_model.transcribe(
-        str(audio_path),
-        language="en",
-        beam_size=3,
-        vad_filter=True,
-        condition_on_previous_text=False,
-    )
+def transcribe_audio(audio: Path | np.ndarray) -> str:
+    source: str | np.ndarray
+    if isinstance(audio, Path):
+        source = str(audio)
+    else:
+        samples = np.asarray(audio).reshape(-1)
+        source = (
+            samples.astype(np.float32) / 32768.0
+            if np.issubdtype(samples.dtype, np.integer)
+            else samples.astype(np.float32)
+        )
+    with _whisper_lock:
+        segments, _ = whisper_model.transcribe(
+            source,
+            language=os.getenv("DARWIN_WHISPER_LANGUAGE", "en"),
+            beam_size=max(1, int(os.getenv("DARWIN_WHISPER_BEAM_SIZE", "1"))),
+            vad_filter=os.getenv("DARWIN_WHISPER_VAD_FILTER", "false").casefold()
+            in {"1", "true", "yes", "on"},
+            condition_on_previous_text=False,
+            word_timestamps=False,
+        )
 
     return " ".join(
         segment.text.strip() for segment in segments if segment.text.strip()
@@ -195,22 +269,40 @@ def listen(
     announce: bool = True,
     report_timing: bool = True,
     input_stream=None,
+    cancel_event: Event | None = None,
 ) -> str:
     global _last_input_timing
 
     publish_ui_state("listening")
+    prefetch_enabled = os.getenv(
+        "DARWIN_STT_ENDPOINT_PREFETCH", "true"
+    ).casefold() in {"1", "true", "yes", "on"}
+    prefetch_executor = (
+        ThreadPoolExecutor(max_workers=1, thread_name_prefix="darwin-stt-prefetch")
+        if prefetch_enabled
+        else None
+    )
+    prefetch_future: Future[str] | None = None
+    prefetch_valid = False
+
+    def offer_endpoint_candidate(audio: np.ndarray) -> None:
+        nonlocal prefetch_future, prefetch_valid
+        if prefetch_executor is None:
+            return
+        if prefetch_future is not None and not prefetch_future.done():
+            return
+        prefetch_future = prefetch_executor.submit(transcribe_audio, audio.copy())
+        prefetch_valid = True
+
+    def invalidate_endpoint_candidate() -> None:
+        nonlocal prefetch_valid
+        prefetch_valid = False
+        if prefetch_future is not None:
+            prefetch_future.cancel()
+
     recording_started = time.monotonic()
-    if announce:
-        audio_path = record_until_silence(
-            output_path=output_path,
-            start_timeout_seconds=start_timeout_seconds,
-            silence_seconds=silence_seconds,
-            max_recording_seconds=max_recording_seconds,
-            input_stream=input_stream,
-            manage_audio_focus=manage_audio_focus,
-        )
-    else:
-        with redirect_stdout(StringIO()):
+    try:
+        if announce:
             audio_path = record_until_silence(
                 output_path=output_path,
                 start_timeout_seconds=start_timeout_seconds,
@@ -218,7 +310,27 @@ def listen(
                 max_recording_seconds=max_recording_seconds,
                 input_stream=input_stream,
                 manage_audio_focus=manage_audio_focus,
+                cancel_event=cancel_event,
+                endpoint_candidate_callback=offer_endpoint_candidate,
+                endpoint_candidate_invalidated=invalidate_endpoint_candidate,
             )
+        else:
+            with redirect_stdout(StringIO()):
+                audio_path = record_until_silence(
+                    output_path=output_path,
+                    start_timeout_seconds=start_timeout_seconds,
+                    silence_seconds=silence_seconds,
+                    max_recording_seconds=max_recording_seconds,
+                    input_stream=input_stream,
+                    manage_audio_focus=manage_audio_focus,
+                    cancel_event=cancel_event,
+                    endpoint_candidate_callback=offer_endpoint_candidate,
+                    endpoint_candidate_invalidated=invalidate_endpoint_candidate,
+                )
+    except Exception:
+        if prefetch_executor is not None:
+            prefetch_executor.shutdown(wait=False, cancel_futures=True)
+        raise
     recording_finished = time.monotonic()
 
     if audio_path is None:
@@ -227,14 +339,24 @@ def listen(
             "whisper_seconds": None,
         }
         publish_ui_state("idle")
+        if prefetch_executor is not None:
+            prefetch_executor.shutdown(wait=False, cancel_futures=True)
         return ""
 
     publish_ui_state("transcribing")
     try:
-        transcript = transcribe_audio(audio_path)
+        if prefetch_valid and prefetch_future is not None:
+            transcript = prefetch_future.result()
+        else:
+            transcript = transcribe_audio(
+                _last_recorded_audio if _last_recorded_audio is not None else audio_path
+            )
     except Exception:
         publish_ui_state("error")
         raise
+    finally:
+        if prefetch_executor is not None:
+            prefetch_executor.shutdown(wait=False, cancel_futures=True)
     transcription_finished = time.monotonic()
     _last_input_timing = {
         "recording_seconds": recording_finished - recording_started,

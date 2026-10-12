@@ -1,0 +1,15 @@
+{
+  "id": "darwin.calendar",
+  "name": "Calendar",
+  "description": "Outlook-first calendar, synced through macOS",
+  "version": "1.0.0",
+  "type": "native",
+  "icon": "calendar",
+  "entry": "calendar",
+  "permissions": ["calendar.read", "calendar.write"],
+  "instancePolicy": "single",
+  "pinned": true,
+  "launcherOrder": 15,
+  "windowStyle": "document",
+  "edgeEffect": "none"
+}

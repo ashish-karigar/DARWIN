@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 
 from app.ragv2.contracts import (
@@ -13,7 +14,7 @@ class CitationContext:
 
 
 class CitationBuilder:
-    """Converts retrieved context into numbered, traceable evidence."""
+    """Converts context into traceable, JSON-isolated evidence records."""
 
     def build(
         self,
@@ -46,11 +47,12 @@ class CitationBuilder:
                 self._format_evidence(
                     citation,
                     item.text,
+                    item.information_needs,
                 )
             )
 
         return CitationContext(
-            prompt_context="\n\n".join(evidence_blocks),
+            prompt_context="\n".join(evidence_blocks),
             citations=tuple(citations),
         )
 
@@ -58,24 +60,18 @@ class CitationBuilder:
     def _format_evidence(
         citation: Citation,
         text: str,
+        information_needs: tuple[str, ...] = (),
     ) -> str:
-        metadata = [
-            f"[{citation.citation_id}]",
-            f"Document: {citation.document_title}",
-            f"Source: {citation.source_uri}",
-        ]
-
-        if citation.page_number is not None:
-            metadata.append(
-                f"Page: {citation.page_number}"
-            )
-
-        if citation.heading_path:
-            metadata.append(
-                "Heading: "
-                + " > ".join(citation.heading_path)
-            )
-
-        metadata.append(f"Evidence:\n{text}")
-
-        return "\n".join(metadata)
+        return json.dumps(
+            {
+                "citation": f"[{citation.citation_id}]",
+                "document": citation.document_title,
+                "source": citation.source_uri,
+                "page": citation.page_number,
+                "heading": list(citation.heading_path),
+                "information_needs": list(information_needs),
+                "content": text,
+            },
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )

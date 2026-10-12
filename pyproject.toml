@@ -9,6 +9,7 @@ requires-python = ">=3.11"
 dependencies = [
     "ollama",
     "langgraph",
+    "langsmith>=0.4.25",
     "langchain-ollama",
     "langgraph-checkpoint-sqlite",
     "chromadb",
@@ -37,6 +38,8 @@ dependencies = [
     "liteparse",
     "llama-cloud>=1.0",
     "sentence-transformers",
+    "fastapi>=0.116,<1",
+    "uvicorn[standard]>=0.35,<1",
 ]
 
 [tool.setuptools.packages.find]
@@ -45,6 +48,18 @@ where = ["src"]
 [project.optional-dependencies]
 dev = [
     "pytest",
+]
+vision = [
+    "opencv-python>=4.10",
+    "ultralytics>=8.3",
+]
+benchmarks = [
+    "datasets==4.8.5",
+    "ragchecker==0.1.9",
+    "ragas==0.4.3",
+    "beir==2.2.0",
+    "ijson>=3.5,<4",
+    "langchain-community==0.3.31",
 ]
 
 [tool.pytest.ini_options]

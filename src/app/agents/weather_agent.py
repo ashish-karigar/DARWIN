@@ -17,9 +17,12 @@ Never ask for a location when none is provided.
 Call get_current_weather with no location so it uses the cached Mac location.
 """
 
+WEATHER_TOOLS = [get_current_weather]
+get_current_weather.metadata = {"capability": "check live weather"}
+
 weather_agent = build_agent(
     system_prompt=WEATHER_PROMPT,
-    tools=[get_current_weather],
+    tools=WEATHER_TOOLS,
 )
 
 

@@ -8,9 +8,11 @@ import { NativeAppErrorBoundary } from './NativeAppErrorBoundary'
 import { SettingsApp } from './SettingsApp'
 import { RemindersApp } from './RemindersApp'
 import { CameraApp } from './CameraApp'
+import { CalendarApp } from './CalendarApp'
 
 const nativeApps: Readonly<Record<string, ComponentType>> = {
   assistant: AssistantApp,
+  calendar: CalendarApp,
   camera: CameraApp,
   reminders: RemindersApp,
   settings: SettingsApp

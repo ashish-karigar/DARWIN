@@ -96,7 +96,6 @@ class SQLiteLexicalIndex:
             document_id: str | None = None,
             content_type: ContentType | None = None,
     ) -> tuple[RetrievalHit, ...]:
-        ...
         if not query.strip():
             raise ValueError("Lexical search query cannot be empty.")
 

@@ -172,6 +172,22 @@ export const clientMessageSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     ...messageBase,
+    type: z.literal('assistant.listen'),
+    sessionId: identifierSchema
+  }),
+  z.object({
+    ...messageBase,
+    type: z.literal('assistant.wake'),
+    sessionId: identifierSchema,
+    enabled: z.boolean()
+  }),
+  z.object({
+    ...messageBase,
+    type: z.literal('media.control'),
+    action: z.enum(['pause', 'resume', 'next', 'previous'])
+  }),
+  z.object({
+    ...messageBase,
     type: z.literal('assistant.cancel'),
     requestId: z.string().uuid()
   }),
@@ -186,6 +202,13 @@ export const clientMessageSchema = z.discriminatedUnion('type', [
 export type ClientMessage = z.infer<typeof clientMessageSchema>
 
 export const serverMessageSchema = z.discriminatedUnion('type', [
+  z.object({
+    ...messageBase,
+    type: z.literal('app.command'),
+    requestId: z.string().uuid(),
+    appId: identifierSchema,
+    action: z.enum(['open', 'close'])
+  }),
   z.object({
     ...messageBase,
     type: z.literal('session.ready'),
@@ -205,9 +228,52 @@ export const serverMessageSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     ...messageBase,
+    type: z.literal('assistant.activity'),
+    requestId: z.string().uuid(),
+    skill: identifierSchema,
+    phase: z.enum(['started', 'completed', 'failed'])
+  }),
+  z.object({
+    ...messageBase,
+    type: z.literal('camera.command'),
+    requestId: z.string().uuid(),
+    action: z.enum([
+      'open',
+      'close',
+      'capture',
+      'camera.next',
+      'camera.previous',
+      'detection.start',
+      'detection.stop',
+      'mirror.on',
+      'mirror.off',
+      'mirror.toggle'
+    ])
+  }),
+  z.object({
+    ...messageBase,
     type: z.literal('assistant.response'),
     requestId: z.string().uuid(),
     content: z.string().max(100_000),
+    final: z.boolean()
+  }),
+  z.object({
+    ...messageBase,
+    type: z.literal('media.now-playing'),
+    provider: z.enum(['spotify', 'apple_music', 'other']),
+    title: z.string(),
+    artist: z.string(),
+    album: z.string(),
+    artworkUrl: z.url().nullable(),
+    durationMs: z.number().int().nonnegative(),
+    progressMs: z.number().int().nonnegative(),
+    isPlaying: z.boolean()
+  }),
+  z.object({
+    ...messageBase,
+    type: z.literal('assistant.transcription'),
+    requestId: z.string().uuid(),
+    content: z.string().max(50_000),
     final: z.boolean()
   }),
   z.object({

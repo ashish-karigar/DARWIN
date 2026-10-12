@@ -7,6 +7,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 
+from app.llm.usage import groq_usage_callback
 from app.rag.tools import RAG_TOOLS
 
 MODEL_NAME = "qwen3:14b"
@@ -63,6 +64,7 @@ primary_model = ChatGroq(
     model="openai/gpt-oss-120b",
     temperature=0,
     max_retries=2,
+    callbacks=[groq_usage_callback],
 ).bind_tools(RAG_TOOLS)
 
 fallback_model = ChatOllama(

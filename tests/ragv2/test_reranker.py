@@ -154,7 +154,7 @@ def test_handles_empty_results_and_invalid_input():
         reranker.rerank("question", (), limit=0)
 
 
-def test_rejects_incomplete_model_output():
+def test_incomplete_model_output_preserves_hybrid_ranking():
     hits = (
         create_hit("first", "First passage.", rank=1),
         create_hit("second", "Second passage.", rank=2),
@@ -164,8 +164,34 @@ def test_rejects_incomplete_model_output():
         scorer=FakePassageScorer(scores=[1.0])
     )
 
-    with pytest.raises(
-        RuntimeError,
-        match="unexpected score count",
-    ):
-        reranker.rerank("question", hits)
+    reranked = reranker.rerank("question", hits)
+
+    assert [hit.chunk.chunk_id for hit in reranked] == [
+        "first",
+        "second",
+    ]
+    assert reranked[0].metadata["reranker_fallback"] is True
+
+
+def test_scorer_failure_preserves_hybrid_ranking():
+    class FailingScorer:
+        def score(self, pairs):
+            raise RuntimeError("model unavailable")
+
+    hits = (
+        create_hit("first", "First passage.", rank=1),
+        create_hit("second", "Second passage.", rank=2),
+    )
+
+    reranked = CrossEncoderReranker(
+        scorer=FailingScorer()
+    ).rerank("question", hits)
+
+    assert [hit.chunk.chunk_id for hit in reranked] == [
+        "first",
+        "second",
+    ]
+    assert all(
+        hit.metadata["reranker_fallback"]
+        for hit in reranked
+    )

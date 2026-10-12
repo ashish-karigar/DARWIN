@@ -1,7 +1,7 @@
 import re
 from hashlib import sha256
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import httpx
 import trafilatura
@@ -12,19 +12,24 @@ from app.ragv2.contracts import (
     ParsedDocument,
     SourceType,
 )
-from app. ragv2.ingest.parsers.base import Source
+from app.ragv2.ingest.parsers.base import Source
+from app.ragv2.ingest.security import URLSafetyPolicy
 
 
 class WebParser:
-    name ="web"
+    """Extracts public web pages without exposing protected networks."""
+
+    name = "web"
 
     def __init__(
-            self,
-            rag_settings: RagSettings = settings,
-            http_client: httpx.Client | None = None,
+        self,
+        rag_settings: RagSettings = settings,
+        http_client: httpx.Client | None = None,
+        url_policy: URLSafetyPolicy | None = None,
     ):
         self.settings = rag_settings
         self.http_client = http_client
+        self.url_policy = url_policy or URLSafetyPolicy()
 
     def supports(self, source: Source) -> bool:
         if isinstance(source, Path):
@@ -94,18 +99,105 @@ class WebParser:
         )
 
     def _download(self, url: str) -> httpx.Response:
+        safe_url = self.url_policy.validate(url)
+
         if self.http_client is not None:
-            response = self.http_client.get(url)
-        else:
-            response = httpx.get(
-                url,
-                timeout=self.settings.request_timeout_seconds,
-                follow_redirects=True,
-                headers={"User-Agent": "DARWIN-RAG/0.1"},
+            return self._follow_redirects(
+                self.http_client,
+                safe_url,
             )
 
-        response.raise_for_status()
-        return response
+        with httpx.Client(
+            timeout=self.settings.request_timeout_seconds,
+            follow_redirects=False,
+            headers={"User-Agent": "DARWIN-RAG/0.1"},
+        ) as client:
+            return self._follow_redirects(client, safe_url)
+
+    def _follow_redirects(
+        self,
+        client: httpx.Client,
+        url: str,
+    ) -> httpx.Response:
+        current_url = url
+
+        for redirect_count in range(
+            self.settings.maximum_web_redirects + 1
+        ):
+            response = self._bounded_request(
+                client,
+                current_url,
+            )
+
+            if not response.is_redirect:
+                response.raise_for_status()
+                return response
+
+            location = response.headers.get("location")
+            if not location:
+                response.raise_for_status()
+                return response
+
+            if redirect_count >= self.settings.maximum_web_redirects:
+                raise ValueError(
+                    "Web source exceeded the maximum redirect count."
+                )
+
+            current_url = self.url_policy.validate(
+                urljoin(current_url, location)
+            )
+
+        raise RuntimeError("Unreachable redirect state.")
+
+    def _bounded_request(
+        self,
+        client: httpx.Client,
+        url: str,
+    ) -> httpx.Response:
+        maximum_bytes = (
+            self.settings.maximum_file_size_mb * 1024 * 1024
+        )
+
+        with client.stream(
+            "GET",
+            url,
+            follow_redirects=False,
+        ) as response:
+            declared_length = response.headers.get("content-length")
+            if (
+                declared_length is not None
+                and declared_length.isdigit()
+                and int(declared_length) > maximum_bytes
+            ):
+                raise ValueError(
+                    "Web document exceeds "
+                    f"{self.settings.maximum_file_size_mb} MB."
+                )
+
+            if response.is_redirect:
+                return httpx.Response(
+                    status_code=response.status_code,
+                    headers=response.headers,
+                    request=response.request,
+                )
+
+            response.raise_for_status()
+            content = bytearray()
+
+            for block in response.iter_bytes():
+                if len(content) + len(block) > maximum_bytes:
+                    raise ValueError(
+                        "Web document exceeds "
+                        f"{self.settings.maximum_file_size_mb} MB."
+                    )
+                content.extend(block)
+
+            return httpx.Response(
+                status_code=response.status_code,
+                headers=response.headers,
+                content=bytes(content),
+                request=response.request,
+            )
 
     @staticmethod
     def _authors(author: str | None) -> tuple[str, ...]:
@@ -177,7 +269,6 @@ class WebParser:
                 text=fallback_text,
             )
         ]
-
 
 
 

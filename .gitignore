@@ -6,6 +6,7 @@ data/*.sqlite
 data/models/
 data/voice_profiles/
 data/auth/
+data/telemetry/
 .env
 training/
 node_modules/
@@ -15,6 +16,11 @@ node_modules/
 data/chroma/
 data/chroma_v2/
 data/ragv2/indexes/
+data/ragv2/industry_benchmarks/indexes/
+data/ragv2/industry_benchmarks/runs/
+data/ragv2/industry_benchmarks/reports/
+data/external/
+.venv-industry-benchmarks/
 src/app/rag/data/chroma/
 data/*.wav
 data/evaluation/*_latest.json

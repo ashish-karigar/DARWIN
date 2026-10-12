@@ -1,0 +1,104 @@
+{
+  "name": "DARWIN heterogeneous core RAG",
+  "cases": [
+    {
+      "case_id": "paper-memory",
+      "question": "What non-parametric memory does RAG use?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_terms": ["dense vector index", "Wikipedia"],
+      "expected_strategy": "direct",
+      "tags": ["pdf", "semantic"]
+    },
+    {
+      "case_id": "paper-authors",
+      "question": "Who introduced retrieval-augmented generation?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_terms": ["Patrick Lewis"],
+      "expected_strategy": "decompose",
+      "tags": ["pdf", "metadata"]
+    },
+    {
+      "case_id": "paper-hot-swap",
+      "question": "What advantage does RAG index hot-swapping provide?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_terms": ["updated", "test time"],
+      "expected_strategy": "direct",
+      "tags": ["pdf", "concept"]
+    },
+    {
+      "case_id": "plan-pdf-parser",
+      "question": "Which primary parser should DARWIN use for PDF files?",
+      "should_answer": true,
+      "expected_source_suffixes": ["action-plan/rag/README.md"],
+      "required_terms": ["Docling"],
+      "expected_strategy": "direct",
+      "tags": ["markdown", "exact"]
+    },
+    {
+      "case_id": "plan-graph-condition",
+      "question": "When should graph retrieval be added to DARWIN RAG?",
+      "should_answer": true,
+      "expected_source_suffixes": ["action-plan/rag/README.md"],
+      "required_terms": ["relationship"],
+      "expected_strategy": "direct",
+      "tags": ["markdown", "policy"]
+    },
+    {
+      "case_id": "plan-correction-limit",
+      "question": "How many corrective retrieval passes are allowed in the first RAG version?",
+      "should_answer": true,
+      "expected_source_suffixes": ["action-plan/rag/README.md"],
+      "required_terms": ["one"],
+      "expected_strategy": "direct",
+      "tags": ["markdown", "safety"]
+    },
+    {
+      "case_id": "invoice-number",
+      "question": "What is the invoice number?",
+      "should_answer": true,
+      "expected_source_suffixes": ["invoice.png"],
+      "required_terms": ["DARWIN-2048"],
+      "expected_strategy": "direct",
+      "tags": ["image", "ocr", "identifier"]
+    },
+    {
+      "case_id": "invoice-total",
+      "question": "What is the invoice total amount?",
+      "should_answer": true,
+      "expected_source_suffixes": ["invoice.png"],
+      "required_terms": ["475.25"],
+      "expected_strategy": "direct",
+      "tags": ["image", "ocr", "currency"]
+    },
+    {
+      "case_id": "structured-east-revenue",
+      "question": "What is the total Revenue for the East region?",
+      "should_answer": true,
+      "expected_source_suffixes": ["sales.md"],
+      "required_terms": ["2700.5"],
+      "expected_strategy": "direct",
+      "tags": ["markdown", "table", "aggregation"]
+    },
+    {
+      "case_id": "missing-revenue",
+      "question": "What was Acme Corporation's revenue in 2025?",
+      "should_answer": false,
+      "expected_source_suffixes": [],
+      "required_terms": [],
+      "expected_strategy": "direct",
+      "tags": ["no-answer"]
+    },
+    {
+      "case_id": "missing-medical",
+      "question": "Which clinical trial proved that DARWIN cures migraines?",
+      "should_answer": false,
+      "expected_source_suffixes": [],
+      "required_terms": [],
+      "expected_strategy": "direct",
+      "tags": ["no-answer", "hallucination"]
+    }
+  ]
+}

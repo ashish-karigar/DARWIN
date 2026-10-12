@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { IconButton, Tooltip } from '../components/ui'
+import { useConversationStore } from '../stores/conversationStore'
 
 interface StatusBarProps {
   theme: 'dark' | 'projector'
@@ -11,6 +12,14 @@ const formatTime = (date: Date) =>
 
 export function StatusBar({ onToggleTheme, theme }: StatusBarProps) {
   const [now, setNow] = useState(() => new Date())
+  const runtimeStatus = useConversationStore((state) => state.runtimeStatus)
+  const assistantStatus = runtimeStatus === 'connected'
+    ? 'online'
+    : runtimeStatus === 'starting'
+      ? 'starting'
+      : runtimeStatus === 'reconnecting'
+        ? 'reconnecting'
+        : 'offline'
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30_000)
@@ -21,9 +30,9 @@ export function StatusBar({ onToggleTheme, theme }: StatusBarProps) {
     <header className="status-bar">
       <span className="status-bar__wordmark">DARWIN</span>
       <div className="status-bar__system">
-        <span className="status-bar__assistant">
+        <span className="status-bar__assistant" data-status={assistantStatus} aria-live="polite">
           <span className="status-dot" />
-          Assistant offline
+          Assistant {assistantStatus}
         </span>
         <time dateTime={now.toISOString()}>{formatTime(now)}</time>
         <Tooltip

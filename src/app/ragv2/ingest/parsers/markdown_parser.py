@@ -5,6 +5,7 @@ from pathlib import Path
 from app.ragv2.config import RagSettings, settings
 from app.ragv2.contracts import (
     DocumentSection,
+    DocumentTable,
     ParsedDocument,
     SourceType,
 )
@@ -53,7 +54,8 @@ class MarkdownParser:
 
         source_uri = str(path)
         document_id = sha256(source_uri.encode("utf-8")).hexdigest()
-        sections = self._create_sections(text, document_id)
+        tables, prose_text = self._extract_tables(text, document_id)
+        sections = self._create_sections(prose_text, document_id)
 
         first_heading = HEADING_PATTERN.search(text)
         title = (
@@ -68,12 +70,138 @@ class MarkdownParser:
             source_type=SourceType.MARKDOWN,
             source_uri=source_uri,
             sections=tuple(sections),
+            tables=tuple(tables),
             metadata={
                 "parser": self.name,
                 "parser_version": "1.0",
                 "file_size_bytes": path.stat().st_size,
             },
         )
+
+    @classmethod
+    def _extract_tables(
+        cls,
+        text: str,
+        document_id: str,
+    ) -> tuple[list[DocumentTable], str]:
+        """Extracts pipe tables while preserving prose character offsets."""
+
+        lines = text.splitlines(keepends=True)
+        offsets = []
+        cursor = 0
+
+        for line in lines:
+            offsets.append(cursor)
+            cursor += len(line)
+
+        tables = []
+        spans = []
+        in_fence = False
+        index = 0
+
+        while index < len(lines):
+            stripped = lines[index].strip()
+
+            if stripped.startswith(("```", "~~~")):
+                in_fence = not in_fence
+                index += 1
+                continue
+
+            if (
+                in_fence
+                or index + 1 >= len(lines)
+                or "|" not in stripped
+                or not cls._is_table_separator(lines[index + 1])
+            ):
+                index += 1
+                continue
+
+            end_index = index + 2
+
+            while end_index < len(lines):
+                row = lines[end_index].strip()
+
+                if not row or "|" not in row:
+                    break
+
+                if row.startswith(("```", "~~~", "#")):
+                    break
+
+                end_index += 1
+
+            markdown = "".join(
+                lines[index:end_index]
+            ).strip()
+            start_offset = offsets[index]
+            end_offset = (
+                offsets[end_index]
+                if end_index < len(offsets)
+                else len(text)
+            )
+            table_index = len(tables)
+            table_id = sha256(
+                (
+                    f"{document_id}:table:{table_index}:"
+                    f"{markdown}"
+                ).encode("utf-8")
+            ).hexdigest()
+            tables.append(
+                DocumentTable(
+                    table_id=table_id,
+                    markdown=markdown,
+                    heading_path=cls._heading_path_at(
+                        text,
+                        start_offset,
+                    ),
+                )
+            )
+            spans.append((start_offset, end_offset))
+            index = end_index
+
+        prose_text = text
+
+        for start_offset, end_offset in reversed(spans):
+            replacement = re.sub(
+                r"[^\n]",
+                " ",
+                prose_text[start_offset:end_offset],
+            )
+            prose_text = (
+                prose_text[:start_offset]
+                + replacement
+                + prose_text[end_offset:]
+            )
+
+        return tables, prose_text
+
+    @staticmethod
+    def _is_table_separator(line: str) -> bool:
+        cells = [
+            cell.strip()
+            for cell in line.strip().strip("|").split("|")
+        ]
+        return bool(cells) and all(
+            re.fullmatch(r":?-{3,}:?", cell)
+            for cell in cells
+        )
+
+    @staticmethod
+    def _heading_path_at(
+        text: str,
+        offset: int,
+    ) -> tuple[str, ...]:
+        path = []
+
+        for heading in HEADING_PATTERN.finditer(
+            text,
+            0,
+            offset,
+        ):
+            level = len(heading.group(1))
+            path = path[:level - 1]
+            path.append(heading.group(2).strip())
+
+        return tuple(path)
 
     @staticmethod
     def _create_sections(

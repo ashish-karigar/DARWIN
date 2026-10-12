@@ -38,6 +38,29 @@ class ModelFallbackTests(unittest.TestCase):
 
         self.assertIn("both reasoning models", reply.content)
 
+    def test_empty_fallback_returns_graceful_message(self):
+        primary = Mock()
+        primary.invoke.return_value = AIMessage(content="")
+        fallback = Mock()
+        fallback.invoke.return_value = AIMessage(content="")
+
+        reply = invoke_with_fallback(primary, fallback, [])
+
+        self.assertIn("both reasoning models", reply.content)
+
+    def test_fallback_tool_call_without_text_is_valid(self):
+        primary = Mock()
+        primary.invoke.side_effect = RuntimeError("primary failed")
+        fallback = Mock()
+        fallback.invoke.return_value = AIMessage(
+            content="",
+            tool_calls=[{"name": "diagnostics", "args": {}, "id": "call-1"}],
+        )
+
+        reply = invoke_with_fallback(primary, fallback, [])
+
+        self.assertEqual(reply.tool_calls[0]["name"], "diagnostics")
+
 
 if __name__ == "__main__":
     unittest.main()

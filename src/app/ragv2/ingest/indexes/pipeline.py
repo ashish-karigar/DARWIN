@@ -14,6 +14,10 @@ from app.ragv2.ingest.indexes.vector import (
     ChromaVectorIndex,
     VectorIndex,
 )
+from app.ragv2.ingest.indexes.structured import (
+    SQLiteStructuredIndex,
+    StructuredIndex,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,6 +27,8 @@ class IndexingResult:
     token_count: int
     replaced_vector_chunks: int
     replaced_lexical_chunks: int
+    structured_row_count: int = 0
+    replaced_structured_rows: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,6 +37,7 @@ class DeletionResult:
     document_existed: bool
     deleted_vector_chunks: int
     deleted_lexical_chunks: int
+    deleted_structured_rows: int = 0
 
 
 class IndexingPipeline:
@@ -41,6 +48,7 @@ class IndexingPipeline:
         document_store: DocumentStore | None = None,
         vector_index: VectorIndex | None = None,
         lexical_index: LexicalIndex | None = None,
+        structured_index: StructuredIndex | None = None,
     ):
         self.document_store = (
             document_store or SQLiteDocumentStore()
@@ -50,6 +58,9 @@ class IndexingPipeline:
         )
         self.lexical_index = (
             lexical_index or SQLiteLexicalIndex()
+        )
+        self.structured_index = (
+            structured_index or SQLiteStructuredIndex()
         )
 
     def index(
@@ -82,10 +93,18 @@ class IndexingPipeline:
                 document.document_id
             )
         )
+        replaced_structured_rows = (
+            self.structured_index.delete_document(
+                document.document_id
+            )
+        )
 
         self.document_store.store(document)
         self.vector_index.upsert(chunks)
         self.lexical_index.upsert(chunks)
+        structured_row_count = self.structured_index.upsert(
+            document
+        )
 
         return IndexingResult(
             document_id=document.document_id,
@@ -95,6 +114,8 @@ class IndexingPipeline:
             ),
             replaced_vector_chunks=replaced_vector_chunks,
             replaced_lexical_chunks=replaced_lexical_chunks,
+            structured_row_count=structured_row_count,
+            replaced_structured_rows=replaced_structured_rows,
         )
 
     def delete(
@@ -107,6 +128,9 @@ class IndexingPipeline:
         deleted_lexical_chunks = (
             self.lexical_index.delete_document(document_id)
         )
+        deleted_structured_rows = (
+            self.structured_index.delete_document(document_id)
+        )
         document_existed = self.document_store.delete(
             document_id
         )
@@ -116,4 +140,5 @@ class IndexingPipeline:
             document_existed=document_existed,
             deleted_vector_chunks=deleted_vector_chunks,
             deleted_lexical_chunks=deleted_lexical_chunks,
+            deleted_structured_rows=deleted_structured_rows,
         )

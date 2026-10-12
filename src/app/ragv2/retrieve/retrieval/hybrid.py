@@ -102,8 +102,8 @@ class HybridRetriever:
                 content_type=content_type,
             )
 
-            vector_hits = vector_future.result()
-            lexical_hits = lexical_future.result()
+            vector_hits = self._safe_result(vector_future)
+            lexical_hits = self._safe_result(lexical_future)
 
         return self.fusion.fuse(
             {
@@ -112,6 +112,15 @@ class HybridRetriever:
             },
             limit=final_limit,
         )
+
+    @staticmethod
+    def _safe_result(future) -> tuple[RetrievalHit, ...]:
+        """Keeps one healthy index usable if its peer is unavailable."""
+
+        try:
+            return tuple(future.result())
+        except Exception:
+            return ()
 
     @staticmethod
     def _build_vector_filter(

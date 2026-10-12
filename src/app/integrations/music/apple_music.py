@@ -15,6 +15,34 @@ PlaybackAction = Literal[
 ]
 
 
+def _publish_current_track(is_playing: bool = True) -> None:
+    script = '''tell application "Music"
+        if player state is stopped then return ""
+        set t to current track
+        return (name of t) & "|||" & (artist of t) & "|||" & (album of t) & "|||" & (duration of t) & "|||" & player position
+    end tell'''
+    result = subprocess.run(
+        ["osascript", "-e", script], capture_output=True, text=True, timeout=4, check=False
+    )
+    parts = result.stdout.strip().split("|||")
+    if len(parts) != 5:
+        return
+    from app.services.media_state import publish_now_playing
+
+    publish_now_playing(
+        {
+            "provider": "apple_music",
+            "title": parts[0],
+            "artist": parts[1],
+            "album": parts[2],
+            "artworkUrl": None,
+            "durationMs": int(float(parts[3]) * 1000),
+            "progressMs": int(float(parts[4]) * 1000),
+            "isPlaying": is_playing,
+        }
+    )
+
+
 class AppleMusicUnavailableError(RuntimeError):
     """Raised when Apple Music cannot handle a request."""
 
@@ -66,6 +94,7 @@ def play(song: str, artist: str = "") -> str:
         error = result.stderr.strip() or "The Apple Music Shortcut failed."
         raise AppleMusicUnavailableError(error)
 
+    _publish_current_track()
     return f"Playing {query} in Apple Music."
 
 
@@ -132,6 +161,7 @@ def play_from_library(song: str, artist: str = "") -> str:
             f'No exact Apple Music library match was found for "{description}".'
         )
 
+    _publish_current_track()
     return response
 
 
@@ -176,6 +206,7 @@ def control(action: PlaybackAction) -> str:
             timeout=5,
             check=True,
         )
+        _publish_current_track(normalized_action not in {"pause", "stop"})
     except (OSError, subprocess.SubprocessError) as exc:
         raise AppleMusicUnavailableError(
             "Apple Music playback control failed."

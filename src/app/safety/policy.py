@@ -4,6 +4,15 @@ from app.safety.models import ActionPolicy, RiskLevel
 
 
 _POLICIES = {
+    **{
+        f"{app}.{action}": ActionPolicy(
+            f"{app}.{action}",
+            RiskLevel.READ_ONLY if action == "list" else RiskLevel.DESTRUCTIVE if action == "delete" else RiskLevel.LOW_IMPACT,
+            f"{action.title()} {app} items",
+        )
+        for app, actions in {"calendar": ["list", "create", "delete"], "reminders": ["list", "create", "complete", "delete"]}.items()
+        for action in actions
+    },
     "knowledge.search": ActionPolicy(
         "knowledge.search", RiskLevel.READ_ONLY, "Search DARWIN knowledge"
     ),

@@ -9,6 +9,7 @@ from app.ragv2.contracts import (
     DocumentSection,
     DocumentTable,
     EvidenceGrade,
+    ParsedDocument,
 )
 from app.ragv2.ingest.chunking.tokenizer import (
     TiktokenCounter,
@@ -96,9 +97,16 @@ class ContextBuilder:
                 candidate.best_rank,
             ),
         )
+        ordered_candidates = self._diversify(
+            ordered_candidates,
+            key=lambda candidate: (
+                candidate.grades[0].hit.chunk.document_id
+            ),
+        )
 
         items = []
         total_tokens = 0
+        seen_context = set()
 
         for candidate in ordered_candidates[
             :self.settings.context_max_parents
@@ -120,6 +128,16 @@ class ContextBuilder:
                 continue
 
             item, token_count = built
+
+            context_key = (
+                item.document_id,
+                " ".join(item.text.casefold().split()),
+            )
+
+            if context_key in seen_context:
+                continue
+
+            seen_context.add(context_key)
             items.append(item)
             total_tokens += token_count
 
@@ -137,6 +155,228 @@ class ContextBuilder:
                 >= self.settings.minimum_direct_evidence
             ),
         )
+
+    def merge(
+        self,
+        query: str,
+        bundles: Sequence[ContextBundle],
+    ) -> ContextBundle:
+        """Merges retry/web context without exceeding the budget."""
+
+        query = query.strip()
+
+        if not query:
+            raise ValueError(
+                "Merged context query cannot be empty."
+            )
+
+        best_by_parent = {}
+
+        for bundle in bundles:
+            for item in bundle.items:
+                key = (item.document_id, item.parent_id)
+                current = best_by_parent.get(key)
+
+                if current is None:
+                    best_by_parent[key] = item
+                    continue
+
+                preferred = (
+                    item
+                    if (
+                        self._item_priority(item)
+                        > self._item_priority(current)
+                    )
+                    else current
+                )
+                information_needs = tuple(
+                    dict.fromkeys(
+                        (
+                            *current.information_needs,
+                            *item.information_needs,
+                        )
+                    )
+                )
+                best_by_parent[key] = preferred.model_copy(
+                    update={
+                        "information_needs": information_needs,
+                    }
+                )
+
+        ordered = sorted(
+            best_by_parent.values(),
+            key=lambda item: (
+                not item.directly_answers,
+                -item.relevance_score,
+                item.document_title.casefold(),
+                item.page_number or 0,
+            ),
+        )
+        ordered = self._diversify(
+            ordered,
+            key=lambda item: item.document_id,
+        )
+
+        items = []
+        total_tokens = 0
+
+        for item in ordered[
+            :self.settings.context_max_parents
+        ]:
+            remaining = (
+                self.settings.context_max_tokens
+                - total_tokens
+            )
+
+            if remaining <= 0:
+                break
+
+            text = item.text
+            token_count = self.token_counter.count(text)
+
+            if token_count > remaining:
+                text = self.token_counter.truncate(
+                    text,
+                    remaining,
+                )
+                token_count = self.token_counter.count(text)
+                item = item.model_copy(
+                    update={
+                        "text": text,
+                        "truncated": True,
+                    }
+                )
+
+            if text.strip():
+                items.append(item)
+                total_tokens += token_count
+
+        direct_count = sum(
+            item.directly_answers
+            for item in items
+        )
+
+        return ContextBundle(
+            query=query,
+            items=tuple(items),
+            total_tokens=total_tokens,
+            has_direct_evidence=(
+                direct_count
+                >= self.settings.minimum_direct_evidence
+            ),
+        )
+
+    def build_requirements(
+        self,
+        query: str,
+        requirements: Sequence[tuple[str, Sequence[EvidenceGrade]]],
+    ) -> ContextBundle:
+        """Builds compact context while reserving space for every need."""
+
+        limit = max(1, self.settings.context_parents_per_requirement)
+        bundles = []
+        reserved_parents = set()
+
+        for requirement, grades in requirements:
+            bundle = self.build(requirement, grades)
+            direct_items = tuple(
+                item for item in bundle.items
+                if item.directly_answers
+            )
+            unused_direct = tuple(
+                item for item in direct_items
+                if (item.document_id, item.parent_id)
+                not in reserved_parents
+            )
+            selected = list(unused_direct[:limit])
+
+            if len(selected) < limit:
+                selected_keys = {
+                    (item.document_id, item.parent_id)
+                    for item in selected
+                }
+                selected.extend(
+                    item
+                    for item in direct_items
+                    if (item.document_id, item.parent_id)
+                    not in selected_keys
+                )
+
+            if len(selected) < limit:
+                selected_keys = {
+                    (item.document_id, item.parent_id)
+                    for item in selected
+                }
+                selected.extend(
+                    item
+                    for item in bundle.items
+                    if (item.document_id, item.parent_id)
+                    not in selected_keys
+                )
+
+            selected = tuple(
+                item.model_copy(
+                    update={
+                        "information_needs": tuple(
+                            dict.fromkeys(
+                                (*item.information_needs, requirement)
+                            )
+                        )
+                    }
+                )
+                for item in selected[:limit]
+            )
+            reserved_parents.update(
+                (item.document_id, item.parent_id)
+                for item in selected
+            )
+            bundles.append(
+                ContextBundle(
+                    query=requirement,
+                    items=selected,
+                    total_tokens=sum(
+                        self.token_counter.count(item.text)
+                        for item in selected
+                    ),
+                    has_direct_evidence=any(
+                        item.directly_answers for item in selected
+                    ),
+                )
+            )
+
+        return self.merge(query, bundles)
+
+    @staticmethod
+    def _item_priority(item: ContextItem) -> tuple:
+        return (
+            item.directly_answers,
+            item.relevance_score,
+            not item.truncated,
+            len(item.text),
+        )
+
+    def _diversify(self, values, *, key):
+        """Prefers source variety, then backfills remaining slots."""
+
+        preferred = []
+        deferred = []
+        counts = {}
+        preferred_limit = max(
+            1,
+            self.settings.context_preferred_parents_per_document,
+        )
+
+        for value in values:
+            identity = key(value)
+            count = counts.get(identity, 0)
+
+            if count < preferred_limit:
+                preferred.append(value)
+                counts[identity] = count + 1
+            else:
+                deferred.append(value)
+
+        return [*preferred, *deferred]
 
     @staticmethod
     def _group_relevant_grades(
@@ -183,10 +423,9 @@ class ContextBuilder:
             chunk.document_id
         )
 
-        parent_text = (
-            self._parent_text(parent)
-            if parent is not None
-            else None
+        parent_text = self._expanded_parent_text(
+            parent,
+            document,
         )
         text = parent_text or chunk.text
         expanded_from_parent = parent_text is not None
@@ -263,6 +502,92 @@ class ContextBuilder:
             ),
             token_count,
         )
+
+    def _expanded_parent_text(
+        self,
+        parent: ParentContent | None,
+        document: ParsedDocument | None,
+    ) -> str | None:
+        """Rejoins short parser fragments that belong to one page block.
+
+        PDF parsers often emit titles, author lists, addresses, or OCR lines
+        as separate parents. A relevant child can therefore be correct while
+        lacking enough surrounding meaning for generation. Only short,
+        adjacent sections with the same page and heading are joined here;
+        normal prose, tables, and images keep their original boundaries.
+        """
+
+        text = (
+            self._parent_text(parent)
+            if parent is not None
+            else None
+        )
+
+        if (
+            not isinstance(parent, DocumentSection)
+            or document is None
+            or text is None
+            or self.token_counter.count(text)
+            > self.settings.context_fragment_max_tokens
+        ):
+            return text
+
+        sections = document.sections
+        parent_index = next(
+            (
+                index
+                for index, section in enumerate(sections)
+                if section.section_id == parent.section_id
+            ),
+            None,
+        )
+
+        if parent_index is None:
+            return text
+
+        related = [parent]
+
+        for direction in (-1, 1):
+            for distance in range(
+                1,
+                self.settings.context_fragment_window + 1,
+            ):
+                index = parent_index + direction * distance
+
+                if index < 0 or index >= len(sections):
+                    break
+
+                section = sections[index]
+
+                if (
+                    section.page_number != parent.page_number
+                    or section.heading_path != parent.heading_path
+                    or self.token_counter.count(section.text)
+                    > self.settings.context_fragment_max_tokens
+                ):
+                    break
+
+                related.append(section)
+
+        related.sort(key=sections.index)
+
+        if len(related) < 2:
+            return text
+
+        combined = "\n".join(
+            section.text.strip()
+            for section in related
+            if section.text.strip()
+        )
+
+        if (
+            not combined
+            or self.token_counter.count(combined)
+            > self.settings.context_fragment_group_max_tokens
+        ):
+            return text
+
+        return combined
 
     @staticmethod
     def _parent_text(

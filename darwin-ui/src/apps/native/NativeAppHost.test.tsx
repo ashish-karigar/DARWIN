@@ -10,7 +10,7 @@ import { NativeAppHost } from './NativeAppHost'
 
 const workspace = { x: 0, y: 44, width: 1280, height: 676 }
 const settingsManifest = appRegistry.get('darwin.settings')!
-const assistantManifest = appRegistry.get('darwin.assistant')!
+const remindersManifest = appRegistry.get('darwin.reminders')!
 
 const managedWindow: ManagedWindow = {
   appId: settingsManifest.id,
@@ -29,12 +29,12 @@ describe('NativeAppHost', () => {
   it('maps a registered native entry to its application component', () => {
     render(
       <NativeAppHost
-        manifest={assistantManifest}
+        manifest={remindersManifest}
         managedWindow={managedWindow}
         workspace={workspace}
       />
     )
-    expect(screen.getByRole('heading', { name: 'Not connected' })).toBeInTheDocument()
+    expect(screen.getByText('Loading…')).toBeInTheDocument()
   })
 
   it('provides scoped instance, permission, and command context', () => {

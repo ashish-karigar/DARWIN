@@ -6,7 +6,7 @@
   "type": "native",
   "icon": "camera",
   "entry": "camera",
-  "permissions": ["camera.read"],
+  "permissions": ["camera.read", "vision.detect"],
   "instancePolicy": "single",
   "pinned": true,
   "launcherOrder": 25

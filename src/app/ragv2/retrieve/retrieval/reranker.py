@@ -103,12 +103,15 @@ class CrossEncoderReranker:
             for hit in hits
         ]
 
-        raw_scores = self.scorer.score(pairs)
+        try:
+            raw_scores = self.scorer.score(pairs)
+        except Exception:
+            # Hybrid rankings remain useful when the optional local
+            # cross-encoder cannot load or execute.
+            return self._fallback(hits, final_limit)
 
         if len(raw_scores) != len(hits):
-            raise RuntimeError(
-                "Reranker returned an unexpected score count."
-            )
+            return self._fallback(hits, final_limit)
 
         scored_hits = sorted(
             zip(hits, raw_scores),
@@ -134,6 +137,27 @@ class CrossEncoderReranker:
             )
             for rank, (hit, raw_score) in enumerate(
                 scored_hits,
+                start=1,
+            )
+        )
+
+    @staticmethod
+    def _fallback(
+        hits: tuple[RetrievalHit, ...],
+        limit: int,
+    ) -> tuple[RetrievalHit, ...]:
+        return tuple(
+            hit.model_copy(
+                update={
+                    "rank": rank,
+                    "metadata": {
+                        **hit.metadata,
+                        "reranker_fallback": True,
+                    },
+                }
+            )
+            for rank, hit in enumerate(
+                hits[:limit],
                 start=1,
             )
         )

@@ -64,3 +64,44 @@ def test_rejects_empty_markdown(tmp_path):
 
     with pytest.raises(ValueError, match="empty"):
         MarkdownParser().parse(source)
+
+
+def test_extracts_markdown_tables_as_structured_content(tmp_path):
+    source = tmp_path / "sales.md"
+    source.write_text(
+        "# Sales\n\n"
+        "Quarterly results.\n\n"
+        "| Region | Revenue |\n"
+        "| --- | ---: |\n"
+        "| East | $100 |\n"
+        "| West | $200 |\n",
+        encoding="utf-8",
+    )
+
+    document = MarkdownParser().parse(source)
+
+    assert len(document.tables) == 1
+    assert document.tables[0].heading_path == ("Sales",)
+    assert "| East | $100 |" in document.tables[0].markdown
+    assert all(
+        "| East | $100 |" not in section.text
+        for section in document.sections
+    )
+
+
+def test_does_not_extract_pipe_tables_inside_code_fences(tmp_path):
+    source = tmp_path / "example.md"
+    source.write_text(
+        "# Example\n\n"
+        "```text\n"
+        "| Header | Value |\n"
+        "| --- | --- |\n"
+        "| Kept | As code |\n"
+        "```\n",
+        encoding="utf-8",
+    )
+
+    document = MarkdownParser().parse(source)
+
+    assert document.tables == ()
+    assert "| Kept | As code |" in document.sections[0].text

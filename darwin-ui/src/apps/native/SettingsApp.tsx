@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Button } from '../../components/ui'
 import {
   defaultPreferences,
@@ -27,16 +27,30 @@ const sections: { id: SettingsSection; label: string }[] = [
 interface CredentialDraft {
   groqApiKey: string
   fishAudioApiKey: string
+  fishAudioVoiceId: string
   spotifyClientId: string
-  spotifyClientSecret: string
+  spotifyRedirectUri: string
+  spotifyDeviceName: string
+  langsmithApiKey: string
+  langsmithProject: string
+  langsmithTracing: boolean
+  huggingFaceToken: string
+  llamaCloudApiKey: string
   ollama: boolean
 }
 
 const emptyDraft: CredentialDraft = {
   groqApiKey: '',
   fishAudioApiKey: '',
+  fishAudioVoiceId: '',
   spotifyClientId: '',
-  spotifyClientSecret: '',
+  spotifyRedirectUri: '',
+  spotifyDeviceName: '',
+  langsmithApiKey: '',
+  langsmithProject: '',
+  langsmithTracing: false,
+  huggingFaceToken: '',
+  llamaCloudApiKey: '',
   ollama: true
 }
 
@@ -52,16 +66,40 @@ async function storeCredentials(draft: CredentialDraft): Promise<ServiceState> {
     return true
   }
 
-  const [groq, fishAudio, spotifyClientId, spotifyClientSecret] = await Promise.all([
+  const [
+    groq,
+    fishAudioKey,
+    fishAudioVoice,
+    spotifyClientId,
+    spotifyRedirectUri,
+    langsmith,
+    huggingFace,
+    llamaCloud
+  ] = await Promise.all([
     storeIfPresent('groq.apiKey', draft.groqApiKey),
     storeIfPresent('fishAudio.apiKey', draft.fishAudioApiKey),
+    storeIfPresent('fishAudio.voiceId', draft.fishAudioVoiceId),
     storeIfPresent('spotify.clientId', draft.spotifyClientId),
-    storeIfPresent('spotify.clientSecret', draft.spotifyClientSecret)
+    storeIfPresent('spotify.redirectUri', draft.spotifyRedirectUri),
+    storeIfPresent('langsmith.apiKey', draft.langsmithApiKey),
+    storeIfPresent('huggingFace.token', draft.huggingFaceToken),
+    storeIfPresent('llamaCloud.apiKey', draft.llamaCloudApiKey)
   ])
+  const optionalResults = await Promise.all([
+    storeIfPresent('spotify.deviceName', draft.spotifyDeviceName),
+    storeIfPresent('langsmith.project', draft.langsmithProject),
+    credentials.store('langsmith.tracing', String(draft.langsmithTracing))
+  ])
+  const tracingResult = optionalResults[2]
+  if (typeof tracingResult === 'object' && !tracingResult.ok)
+    throw new Error(tracingResult.error ?? 'credential_storage_failed')
   return {
     groq,
-    fishAudio,
-    spotify: spotifyClientId && spotifyClientSecret,
+    fishAudio: fishAudioKey && fishAudioVoice,
+    spotify: spotifyClientId && spotifyRedirectUri,
+    langsmith,
+    huggingFace,
+    llamaCloud,
     ollama: draft.ollama
   }
 }
@@ -135,17 +173,30 @@ function SetupWizard({ onComplete }: { onComplete?: () => void }) {
             onChange={(event) => setDraft({ ...draft, groqApiKey: event.target.value })}
           />
         </label>
-        <label>
-          <span>Fish Audio API key</span>
-          <input
-            type="password"
-            value={draft.fishAudioApiKey}
-            autoComplete="off"
-            onChange={(event) =>
-              setDraft({ ...draft, fishAudioApiKey: event.target.value })
-            }
-          />
-        </label>
+        <div className="service-fields__pair">
+          <label>
+            <span>Fish Audio API key</span>
+            <input
+              type="password"
+              value={draft.fishAudioApiKey}
+              autoComplete="off"
+              onChange={(event) =>
+                setDraft({ ...draft, fishAudioApiKey: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            <span>Fish Audio voice ID</span>
+            <input
+              type="password"
+              value={draft.fishAudioVoiceId}
+              autoComplete="off"
+              onChange={(event) =>
+                setDraft({ ...draft, fishAudioVoiceId: event.target.value })
+              }
+            />
+          </label>
+        </div>
         <div className="service-fields__pair">
           <label>
             <span>Spotify client ID</span>
@@ -159,17 +210,75 @@ function SetupWizard({ onComplete }: { onComplete?: () => void }) {
             />
           </label>
           <label>
-            <span>Spotify client secret</span>
+            <span>Spotify redirect URI</span>
             <input
               type="password"
-              value={draft.spotifyClientSecret}
+              value={draft.spotifyRedirectUri}
               autoComplete="off"
               onChange={(event) =>
-                setDraft({ ...draft, spotifyClientSecret: event.target.value })
+                setDraft({ ...draft, spotifyRedirectUri: event.target.value })
               }
             />
           </label>
         </div>
+        <div className="service-fields__pair">
+          <label>
+            <span>LangSmith API key</span>
+            <input
+              type="password"
+              value={draft.langsmithApiKey}
+              autoComplete="off"
+              onChange={(event) =>
+                setDraft({ ...draft, langsmithApiKey: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            <span>LangSmith project</span>
+            <input
+              type="password"
+              value={draft.langsmithProject}
+              autoComplete="off"
+              onChange={(event) =>
+                setDraft({ ...draft, langsmithProject: event.target.value })
+              }
+            />
+          </label>
+        </div>
+        <div className="service-fields__pair">
+          <label>
+            <span>Hugging Face token</span>
+            <input
+              type="password"
+              value={draft.huggingFaceToken}
+              autoComplete="off"
+              onChange={(event) =>
+                setDraft({ ...draft, huggingFaceToken: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            <span>LlamaCloud API key</span>
+            <input
+              type="password"
+              value={draft.llamaCloudApiKey}
+              autoComplete="off"
+              onChange={(event) =>
+                setDraft({ ...draft, llamaCloudApiKey: event.target.value })
+              }
+            />
+          </label>
+        </div>
+        <label className="settings-check">
+          <input
+            type="checkbox"
+            checked={draft.langsmithTracing}
+            onChange={(event) =>
+              setDraft({ ...draft, langsmithTracing: event.target.checked })
+            }
+          />
+          <span>Enable LangSmith tracing</span>
+        </label>
         <label className="settings-check">
           <input
             type="checkbox"
@@ -373,22 +482,41 @@ function ServiceSettings() {
       : 'Secure credential service unavailable. Restart DARWIN and try again.'
   )
 
-  useEffect(() => {
+  const refreshStatus = useCallback(async () => {
     const credentials = getCredentialBridge()
     if (!credentials) return
-    void Promise.all([
+    const [
+      groq,
+      fishKey,
+      fishVoice,
+      spotifyId,
+      spotifyRedirect,
+      langsmith,
+      huggingFace,
+      llamaCloud
+    ] = await Promise.all([
       credentials.has('groq.apiKey'),
       credentials.has('fishAudio.apiKey'),
+      credentials.has('fishAudio.voiceId'),
       credentials.has('spotify.clientId'),
-      credentials.has('spotify.clientSecret')
+      credentials.has('spotify.redirectUri'),
+      credentials.has('langsmith.apiKey'),
+      credentials.has('huggingFace.token'),
+      credentials.has('llamaCloud.apiKey')
     ])
-      .then(([groq, fishAudio, spotifyId, spotifySecret]) => {
-        setServiceConfigured('groq', groq)
-        setServiceConfigured('fishAudio', fishAudio)
-        setServiceConfigured('spotify', spotifyId && spotifySecret)
-      })
-      .catch(() => setMessage('Could not read secure credential status.'))
+    setServiceConfigured('groq', groq)
+    setServiceConfigured('fishAudio', fishKey && fishVoice)
+    setServiceConfigured('spotify', spotifyId && spotifyRedirect)
+    setServiceConfigured('langsmith', langsmith)
+    setServiceConfigured('huggingFace', huggingFace)
+    setServiceConfigured('llamaCloud', llamaCloud)
   }, [setServiceConfigured])
+
+  useEffect(() => {
+    void refreshStatus().catch(() =>
+      setMessage('Could not read secure credential status.')
+    )
+  }, [refreshStatus])
 
   const save = async (event: FormEvent) => {
     event.preventDefault()
@@ -397,31 +525,32 @@ function ServiceSettings() {
     try {
       const credentials = getCredentialBridge()
       if (!credentials) throw new Error('credential_bridge_unavailable')
-      if (draft.groqApiKey.trim())
-        await storeCredential(credentials, 'groq.apiKey', draft.groqApiKey)
-      if (draft.fishAudioApiKey.trim())
-        await storeCredential(credentials, 'fishAudio.apiKey', draft.fishAudioApiKey)
-      if (draft.spotifyClientId.trim())
-        await storeCredential(credentials, 'spotify.clientId', draft.spotifyClientId)
-      if (draft.spotifyClientSecret.trim())
-        await storeCredential(
-          credentials,
-          'spotify.clientSecret',
-          draft.spotifyClientSecret
-        )
-
-      const [groq, fishAudio, spotifyId, spotifySecret] = await Promise.all([
-        credentials.has('groq.apiKey'),
-        credentials.has('fishAudio.apiKey'),
-        credentials.has('spotify.clientId'),
-        credentials.has('spotify.clientSecret')
-      ])
-      setServiceConfigured('groq', groq)
-      setServiceConfigured('fishAudio', fishAudio)
-      setServiceConfigured('spotify', spotifyId && spotifySecret)
+      const values: Array<[string, string]> = [
+        ['groq.apiKey', draft.groqApiKey],
+        ['fishAudio.apiKey', draft.fishAudioApiKey],
+        ['fishAudio.voiceId', draft.fishAudioVoiceId],
+        ['spotify.clientId', draft.spotifyClientId],
+        ['spotify.redirectUri', draft.spotifyRedirectUri],
+        ['spotify.deviceName', draft.spotifyDeviceName],
+        ['langsmith.apiKey', draft.langsmithApiKey],
+        ['langsmith.project', draft.langsmithProject],
+        ['huggingFace.token', draft.huggingFaceToken],
+        ['llamaCloud.apiKey', draft.llamaCloudApiKey]
+      ]
+      await Promise.all(
+        values
+          .filter(([, value]) => value.trim())
+          .map(([id, value]) => storeCredential(credentials, id, value))
+      )
+      await storeCredential(
+        credentials,
+        'langsmith.tracing',
+        String(draft.langsmithTracing)
+      )
+      await refreshStatus()
       setServiceConfigured('ollama', draft.ollama)
       setDraft({ ...emptyDraft, ollama: draft.ollama })
-      setMessage('Service settings saved.')
+      setMessage('Saved. The assistant service is applying these settings.')
     } catch {
       setMessage('Could not update secure credentials.')
     } finally {
@@ -429,22 +558,26 @@ function ServiceSettings() {
     }
   }
 
-  const disconnect = async (service: 'groq' | 'fishAudio' | 'spotify') => {
+  const disconnect = async (service: Exclude<keyof ServiceState, 'ollama'>) => {
     const credentials = getCredentialBridge()
     if (!credentials) {
       setMessage('Secure credential service unavailable. Restart DARWIN and try again.')
       return
     }
-    const ids =
-      service === 'spotify'
-        ? ['spotify.clientId', 'spotify.clientSecret']
-        : [service === 'groq' ? 'groq.apiKey' : 'fishAudio.apiKey']
+    const ids: Record<Exclude<keyof ServiceState, 'ollama'>, string[]> = {
+      groq: ['groq.apiKey'],
+      fishAudio: ['fishAudio.apiKey', 'fishAudio.voiceId'],
+      spotify: ['spotify.clientId', 'spotify.redirectUri', 'spotify.deviceName'],
+      langsmith: ['langsmith.apiKey', 'langsmith.project', 'langsmith.tracing'],
+      huggingFace: ['huggingFace.token'],
+      llamaCloud: ['llamaCloud.apiKey']
+    }
     try {
-      const results = await Promise.all(ids.map((id) => credentials.remove(id)))
+      const results = await Promise.all(ids[service].map((id) => credentials.remove(id)))
       if (results.some((result) => !result.ok))
         throw new Error('credential_remove_failed')
       setServiceConfigured(service, false)
-      setMessage(`${service === 'fishAudio' ? 'Fish Audio' : service} disconnected.`)
+      setMessage('Service disconnected. The assistant is reloading its configuration.')
     } catch {
       setMessage('Could not remove the credential.')
     }
@@ -463,49 +596,124 @@ function ServiceSettings() {
           onChange={(groqApiKey) => setDraft({ ...draft, groqApiKey })}
           onDisconnect={() => void disconnect('groq')}
         />
-        <ServiceField
-          label="Fish Audio API key"
-          configured={serviceState.fishAudio}
-          value={draft.fishAudioApiKey}
-          onChange={(fishAudioApiKey) => setDraft({ ...draft, fishAudioApiKey })}
-          onDisconnect={() => void disconnect('fishAudio')}
-        />
-        <div className="service-credential-field">
+        <div className="service-credential-field service-credential-group">
           <div className="service-field-heading">
-            <span>Spotify credentials</span>
-            <ServiceStatus configured={serviceState.spotify} />
+            <span>Fish Audio</span>
+            <ServiceStatus configured={serviceState.fishAudio} />
           </div>
           <div className="service-fields__pair">
             <input
-              aria-label="Spotify client ID"
+              aria-label="Fish Audio API key"
               type="password"
-              placeholder="Client ID"
-              value={draft.spotifyClientId}
+              placeholder="API key"
+              value={draft.fishAudioApiKey}
               onChange={(event) =>
-                setDraft({ ...draft, spotifyClientId: event.target.value })
+                setDraft({ ...draft, fishAudioApiKey: event.target.value })
               }
             />
             <input
-              aria-label="Spotify client secret"
+              aria-label="Fish Audio voice ID"
               type="password"
-              placeholder="Client secret"
-              value={draft.spotifyClientSecret}
+              placeholder="Voice ID"
+              value={draft.fishAudioVoiceId}
               onChange={(event) =>
-                setDraft({ ...draft, spotifyClientSecret: event.target.value })
+                setDraft({ ...draft, fishAudioVoiceId: event.target.value })
               }
             />
           </div>
-          {serviceState.spotify && (
+          {serviceState.fishAudio && (
             <Button
               type="button"
               variant="ghost"
               className="service-disconnect"
-              onClick={() => void disconnect('spotify')}
+              onClick={() => void disconnect('fishAudio')}
             >
               Disconnect
             </Button>
           )}
         </div>
+        <ServiceCredentialGroup
+          label="Spotify"
+          configured={serviceState.spotify}
+          onDisconnect={() => void disconnect('spotify')}
+        >
+          <input
+            aria-label="Spotify client ID"
+            type="password"
+            placeholder="Client ID"
+            value={draft.spotifyClientId}
+            onChange={(event) =>
+              setDraft({ ...draft, spotifyClientId: event.target.value })
+            }
+          />
+          <input
+            aria-label="Spotify redirect URI"
+            type="password"
+            placeholder="Redirect URI"
+            value={draft.spotifyRedirectUri}
+            onChange={(event) =>
+              setDraft({ ...draft, spotifyRedirectUri: event.target.value })
+            }
+          />
+          <input
+            aria-label="Spotify device name"
+            type="password"
+            placeholder="Device name (optional)"
+            value={draft.spotifyDeviceName}
+            onChange={(event) =>
+              setDraft({ ...draft, spotifyDeviceName: event.target.value })
+            }
+          />
+        </ServiceCredentialGroup>
+        <ServiceCredentialGroup
+          label="LangSmith"
+          configured={serviceState.langsmith}
+          onDisconnect={() => void disconnect('langsmith')}
+        >
+          <input
+            aria-label="LangSmith API key"
+            type="password"
+            placeholder="API key"
+            value={draft.langsmithApiKey}
+            onChange={(event) =>
+              setDraft({ ...draft, langsmithApiKey: event.target.value })
+            }
+          />
+          <input
+            aria-label="LangSmith project"
+            type="password"
+            placeholder="Project (darwin-rag-v2)"
+            value={draft.langsmithProject}
+            onChange={(event) =>
+              setDraft({ ...draft, langsmithProject: event.target.value })
+            }
+          />
+          <label className="settings-check service-inline-toggle">
+            <input
+              type="checkbox"
+              aria-label="Enable LangSmith tracing"
+              checked={draft.langsmithTracing}
+              onChange={(event) =>
+                setDraft({ ...draft, langsmithTracing: event.target.checked })
+              }
+            />
+            <span>Enable tracing</span>
+          </label>
+        </ServiceCredentialGroup>
+        <ServiceField
+          label="Hugging Face token"
+          configured={serviceState.huggingFace}
+          value={draft.huggingFaceToken}
+          onChange={(huggingFaceToken) => setDraft({ ...draft, huggingFaceToken })}
+          onDisconnect={() => void disconnect('huggingFace')}
+        />
+        <ServiceField
+          label="LlamaCloud API key"
+          configured={serviceState.llamaCloud}
+          value={draft.llamaCloudApiKey}
+          onChange={(llamaCloudApiKey) => setDraft({ ...draft, llamaCloudApiKey })}
+          onDisconnect={() => void disconnect('llamaCloud')}
+        />
         <label className="settings-check services-ollama">
           <input
             type="checkbox"
@@ -544,6 +752,38 @@ function ServiceStatus({ configured }: { configured: boolean }) {
     <span className="service-state" data-configured={configured}>
       {configured ? 'Configured' : 'Not configured'}
     </span>
+  )
+}
+
+function ServiceCredentialGroup({
+  label,
+  configured,
+  onDisconnect,
+  children
+}: {
+  label: string
+  configured: boolean
+  onDisconnect: () => void
+  children: ReactNode
+}) {
+  return (
+    <div className="service-credential-field service-credential-group">
+      <div className="service-field-heading">
+        <span>{label}</span>
+        <ServiceStatus configured={configured} />
+      </div>
+      <div className="service-fields__pair">{children}</div>
+      {configured && (
+        <Button
+          type="button"
+          variant="ghost"
+          className="service-disconnect"
+          onClick={onDisconnect}
+        >
+          Disconnect
+        </Button>
+      )}
+    </div>
   )
 }
 

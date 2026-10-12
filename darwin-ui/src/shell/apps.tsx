@@ -40,6 +40,12 @@ const icons: Record<string, ReactNode> = {
       <path d="m5 7 1.5 1.5L9 5.5M11 7h8M5 12l1.5 1.5L9 10.5M11 12h8M5 17l1.5 1.5L9 15.5M11 17h8" />
     </svg>
   ),
+  calendar: (
+    <svg aria-hidden="true" {...iconProps}>
+      <rect x="3.5" y="5" width="17" height="15" rx="3" />
+      <path d="M8 3v4M16 3v4M3.5 9.5h17" />
+    </svg>
+  ),
   camera: (
     <svg aria-hidden="true" {...iconProps}>
       <rect x="3" y="6.5" width="18" height="13" rx="2.5" />

@@ -13,7 +13,7 @@ const validApp = {
 describe('AppRegistry', () => {
   it('loads bundled manifests in launcher order', () => {
     expect(appRegistry.list().map((app) => app.id)).toEqual([
-      'darwin.assistant',
+      'darwin.calendar',
       'darwin.reminders',
       'darwin.settings',
       'darwin.camera',

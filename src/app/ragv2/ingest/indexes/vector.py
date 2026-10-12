@@ -98,7 +98,6 @@ class ChromaVectorIndex:
             limit: int = 5,
             where: dict[str, Any] | None = None,
     ) -> tuple[RetrievalHit, ...]:
-        ...
         if not query.strip():
             raise ValueError("Vector search query cannot be empty.")
 

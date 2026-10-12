@@ -7,6 +7,7 @@ import { shellApps } from './apps'
 import { WindowFrame } from './WindowFrame'
 import { NeuralCore } from './NeuralCore'
 import { resizedBounds, type ResizeDirection } from './windowGeometry'
+import { TranscriptRail } from './TranscriptRail'
 
 const STATUS_BAR_HEIGHT = 44
 
@@ -62,7 +63,7 @@ export function Workspace({ suspended = false }: { suspended?: boolean }) {
 
   return (
     <section className="workspace" aria-label="Desktop workspace">
-      <NeuralCore />
+      {!suspended && <NeuralCore />}
       {windows.map((managedWindow) => {
         const app = shellApps.find((candidate) => candidate.id === managedWindow.appId)
         return app ? (
@@ -141,6 +142,7 @@ export function Workspace({ suspended = false }: { suspended?: boolean }) {
           </WindowFrame>
         ) : null
       })}
+      {!suspended && <TranscriptRail />}
     </section>
   )
 }

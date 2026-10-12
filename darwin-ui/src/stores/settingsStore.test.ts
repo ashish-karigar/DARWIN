@@ -36,7 +36,10 @@ describe('settings store', () => {
       groq: true,
       ollama: true,
       fishAudio: false,
-      spotify: false
+      spotify: false,
+      langsmith: false,
+      huggingFace: false,
+      llamaCloud: false
     })
     const persisted = localStorage.getItem('darwin.preferences') ?? ''
     expect(persisted).toContain('onboardingComplete')

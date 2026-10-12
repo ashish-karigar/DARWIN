@@ -91,6 +91,8 @@ class PersistentMicrophone:
             raise ValueError(f"Persistent microphone reads must use {FRAME_SIZE} frames.")
 
         audio = self._frames.get()
+        if self._closed:
+            raise RuntimeError("The microphone has been closed.")
         with self._lock:
             overflowed = self._overflowed
             self._overflowed = False
@@ -120,6 +122,10 @@ class PersistentMicrophone:
         if self._stream.active:
             self._stream.stop()
         self._stream.close()
+        try:
+            self._frames.put_nowait(np.zeros((FRAME_SIZE, 1), dtype=np.int16))
+        except Full:
+            pass
 
 
 class AppleVoiceProcessedMicrophone:

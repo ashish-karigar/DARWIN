@@ -7,6 +7,8 @@ from app.ragv2.contracts import (
     ParsedDocument,
     RetrievalHit,
     SourceType,
+    ContextBundle,
+    ContextItem,
 )
 from app.ragv2.retrieve.retrieval.context_builder import (
     ContextBuilder,
@@ -77,12 +79,13 @@ def create_grade(
     relevance,
     directly_answers,
     is_relevant=True,
+    document_id="document-1",
 ):
     return EvidenceGrade(
         hit=RetrievalHit(
             chunk=Chunk(
                 chunk_id=chunk_id,
-                document_id="document-1",
+                document_id=document_id,
                 parent_id=parent_id,
                 text=f"Child evidence {chunk_id}.",
                 content_type=ContentType.TEXT,
@@ -258,3 +261,324 @@ def test_reports_when_direct_evidence_is_missing():
 
     assert len(bundle.items) == 1
     assert not bundle.has_direct_evidence
+
+
+def test_rejoins_short_adjacent_pdf_fragments_and_deduplicates():
+    document = ParsedDocument(
+        document_id="paper",
+        title="A Research Paper",
+        source_type=SourceType.PDF,
+        source_uri="/documents/paper.pdf",
+        sections=(
+            DocumentSection(
+                section_id="authors-1",
+                text="Ada Lovelace,",
+                heading_path=("A Research Paper",),
+                page_number=1,
+            ),
+            DocumentSection(
+                section_id="authors-2",
+                text="Grace Hopper, Alan Turing",
+                heading_path=("A Research Paper",),
+                page_number=1,
+            ),
+            DocumentSection(
+                section_id="abstract",
+                text="A long abstract begins here.",
+                heading_path=("Abstract",),
+                page_number=1,
+            ),
+        ),
+    )
+    parents = {
+        section.section_id: section
+        for section in document.sections
+    }
+    builder = ContextBuilder(
+        document_store=FakeDocumentStore(
+            document=document,
+            parents=parents,
+        ),
+        token_counter=WordTokenCounter(),
+        rag_settings=RagSettings(
+            context_max_tokens=100,
+            context_max_parents=5,
+            context_fragment_max_tokens=10,
+            context_fragment_window=2,
+            context_fragment_group_max_tokens=20,
+        ),
+    )
+    grades = (
+        create_grade(
+            "authors-child-1",
+            "authors-1",
+            rank=1,
+            relevance=0.99,
+            directly_answers=True,
+            document_id="paper",
+        ),
+        create_grade(
+            "authors-child-2",
+            "authors-2",
+            rank=2,
+            relevance=0.98,
+            directly_answers=True,
+            document_id="paper",
+        ),
+    )
+
+    bundle = builder.build("Who wrote the paper?", grades)
+
+    assert len(bundle.items) == 1
+    assert bundle.items[0].text == (
+        "Ada Lovelace,\nGrace Hopper, Alan Turing"
+    )
+    assert bundle.has_direct_evidence
+
+
+def test_merges_retry_context_and_deduplicates_parents():
+    builder = create_builder()
+
+    original = ContextBundle(
+        query="Question",
+        items=(
+            ContextItem(
+                parent_id="shared",
+                document_id="document-1",
+                document_title="RAG Paper",
+                text="Initial supporting evidence.",
+                content_type=ContentType.TEXT,
+                source_uri="/documents/rag.pdf",
+                supporting_chunk_ids=("old",),
+                relevance_score=0.70,
+                directly_answers=False,
+                expanded_from_parent=True,
+            ),
+        ),
+        total_tokens=3,
+        has_direct_evidence=False,
+    )
+    correction = ContextBundle(
+        query="Rewritten question",
+        items=(
+            original.items[0].model_copy(
+                update={
+                    "text": "Corrected direct evidence.",
+                    "supporting_chunk_ids": ("new",),
+                    "relevance_score": 0.95,
+                    "directly_answers": True,
+                }
+            ),
+        ),
+        total_tokens=3,
+        has_direct_evidence=True,
+    )
+
+    merged = builder.merge(
+        "Question",
+        (original, correction),
+    )
+
+    assert len(merged.items) == 1
+    assert merged.items[0].text == "Corrected direct evidence."
+    assert merged.has_direct_evidence is True
+
+
+def test_merge_prefers_source_diversity_before_backfill():
+    builder = create_builder(
+        rag_settings=RagSettings(
+            context_max_tokens=100,
+            context_max_parents=3,
+            context_preferred_parents_per_document=1,
+        )
+    )
+
+    def item(document_id, parent_id, score):
+        return ContextItem(
+            parent_id=parent_id,
+            document_id=document_id,
+            document_title=document_id,
+            text=f"Evidence from {parent_id}.",
+            content_type=ContentType.TEXT,
+            source_uri=f"/{document_id}.txt",
+            supporting_chunk_ids=(parent_id,),
+            relevance_score=score,
+            directly_answers=True,
+            expanded_from_parent=True,
+        )
+
+    bundle = ContextBundle(
+        query="Question",
+        items=(
+            item("document-a", "a-1", 0.99),
+            item("document-a", "a-2", 0.98),
+            item("document-b", "b-1", 0.90),
+        ),
+        total_tokens=9,
+        has_direct_evidence=True,
+    )
+
+    merged = builder.merge("Question", (bundle,))
+
+    assert [value.parent_id for value in merged.items] == [
+        "a-1",
+        "b-1",
+        "a-2",
+    ]
+
+
+class MultiDocumentStore:
+    """A document store spanning more than one document, for testing
+
+    build_requirements() with sub-questions from different sources.
+    """
+
+    def __init__(self, documents, parents):
+        self.documents = documents
+        self.parents = parents
+
+    def get_document(self, document_id):
+        return self.documents.get(document_id)
+
+    def get_parent(self, parent_id):
+        return self.parents.get(parent_id)
+
+
+def test_build_requirements_preserves_evidence_from_every_document():
+    """Two sub-questions on two different documents must both survive.
+
+    Regression test for a real cross-document decompose bug: a
+    sub-question's own well-graded evidence can be reserved correctly
+    per-requirement and still never reach the final answer if nothing
+    guards it through the merge step. build_requirements() previously
+    had zero test coverage with 2+ requirements, so this exact
+    "evidence for one sub-question disappears" failure mode would not
+    have been caught.
+    """
+
+    parser_document = ParsedDocument(
+        document_id="plan-doc",
+        title="Build Plan",
+        source_type=SourceType.PDF,
+        source_uri="/documents/plan.pdf",
+        sections=(
+            DocumentSection(
+                section_id="parser-parent",
+                text="DARWIN uses Docling as the primary PDF parser.",
+                heading_path=("Parsing",),
+                page_number=1,
+            ),
+        ),
+    )
+    memory_document = ParsedDocument(
+        document_id="rag-doc",
+        title="RAG Paper",
+        source_type=SourceType.PDF,
+        source_uri="/documents/rag.pdf",
+        sections=(
+            DocumentSection(
+                section_id="memory-parent",
+                text=(
+                    "RAG's non-parametric memory is a dense "
+                    "Wikipedia vector index."
+                ),
+                heading_path=("Memory",),
+                page_number=2,
+            ),
+        ),
+    )
+    store = MultiDocumentStore(
+        documents={
+            "plan-doc": parser_document,
+            "rag-doc": memory_document,
+        },
+        parents={
+            "parser-parent": parser_document.sections[0],
+            "memory-parent": memory_document.sections[0],
+        },
+    )
+    builder = ContextBuilder(
+        document_store=store,
+        token_counter=WordTokenCounter(),
+        rag_settings=RagSettings(
+            context_max_tokens=100,
+            context_max_parents=5,
+            context_parents_per_requirement=3,
+        ),
+    )
+    parser_grades = (
+        create_grade(
+            "parser-child",
+            "parser-parent",
+            rank=1,
+            relevance=0.9,
+            directly_answers=True,
+            document_id="plan-doc",
+        ),
+    )
+    memory_grades = (
+        create_grade(
+            "memory-child",
+            "memory-parent",
+            rank=1,
+            relevance=0.9,
+            directly_answers=True,
+            document_id="rag-doc",
+        ),
+    )
+
+    bundle = builder.build_requirements(
+        "Which parser should DARWIN use, and what memory does RAG use?",
+        (
+            ("Which parser should DARWIN use?", parser_grades),
+            ("What memory does RAG use?", memory_grades),
+        ),
+    )
+
+    document_ids = {item.document_id for item in bundle.items}
+    assert document_ids == {"plan-doc", "rag-doc"}
+
+
+def test_build_requirements_reserves_distinct_evidence_per_need():
+    """A shared top hit must not hide a second need's direct evidence."""
+
+    builder = create_builder(
+        rag_settings=RagSettings(
+            context_max_tokens=100,
+            context_max_parents=5,
+            context_parents_per_requirement=1,
+        )
+    )
+    winner = create_grade(
+        "winner-child",
+        "parent-direct",
+        rank=1,
+        relevance=1.0,
+        directly_answers=True,
+    )
+    reason = create_grade(
+        "reason-child",
+        "parent-related",
+        rank=2,
+        relevance=0.99,
+        directly_answers=True,
+    )
+
+    bundle = builder.build_requirements(
+        "Which variant won and why?",
+        (
+            ("Which variant won?", (winner,)),
+            ("Why did that variant help?", (winner, reason)),
+        ),
+    )
+
+    assert [item.parent_id for item in bundle.items] == [
+        "parent-direct",
+        "parent-related",
+    ]
+    assert bundle.items[0].information_needs == (
+        "Which variant won?",
+    )
+    assert bundle.items[1].information_needs == (
+        "Why did that variant help?",
+    )

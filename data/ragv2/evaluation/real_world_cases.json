@@ -1,0 +1,84 @@
+{
+  "name": "DARWIN real-world core RAG",
+  "cases": [
+    {
+      "case_id": "rag-authors",
+      "question": "Who introduced retrieval-augmented generation?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_terms": ["Patrick Lewis"],
+      "expected_strategy": "decompose",
+      "tags": ["pdf", "metadata"]
+    },
+    {
+      "case_id": "rag-hot-swap",
+      "question": "What advantage does RAG index hot-swapping provide?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_terms": ["updated", "test time"],
+      "tags": ["pdf", "concept"]
+    },
+    {
+      "case_id": "parser-policy",
+      "question": "Which parser should DARWIN primarily use for PDF files?",
+      "should_answer": true,
+      "expected_source_suffixes": ["action-plan/rag/README.md"],
+      "required_terms": ["Docling"],
+      "tags": ["markdown", "policy"]
+    },
+    {
+      "case_id": "invoice-compound",
+      "question": "What is the invoice number and when is payment due?",
+      "should_answer": true,
+      "expected_source_suffixes": ["invoice.png"],
+      "required_terms": ["DARWIN-2048", "September 30, 2026"],
+      "expected_strategy": "decompose",
+      "tags": ["image", "ocr", "multi-part"]
+    },
+    {
+      "case_id": "structured-revenue",
+      "question": "What is the total Revenue for the East region?",
+      "should_answer": true,
+      "expected_source_suffixes": ["sales.md"],
+      "required_terms": ["2700.5"],
+      "tags": ["table", "deterministic"]
+    },
+    {
+      "case_id": "rag-authors-and-memory",
+      "question": "Who introduced RAG and what non-parametric memory does it use?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_terms": ["Patrick Lewis", "dense vector index", "Wikipedia"],
+      "expected_strategy": "decompose",
+      "tags": ["pdf", "multi-part"]
+    },
+    {
+      "case_id": "rag-hallucination",
+      "question": "Why can retrieved external evidence reduce hallucination?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_terms": ["factual"],
+      "required_term_groups": [["grounded", "grounding"], ["hallucinate less", "reduce hallucination"]],
+      "required_citation_source_suffixes": ["rag-paper.pdf"],
+      "expected_strategy": "step_back",
+      "tags": ["reasoning", "step-back"]
+    },
+    {
+      "case_id": "rag-variant-comparison",
+      "question": "Compare RAG-Token and RAG-Sequence.",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_terms": ["RAG-Token", "RAG-Sequence"],
+      "required_term_groups": [["different document per token", "different document for each target token"], ["same document for every token", "same document to predict each target token"]],
+      "tags": ["pdf", "comparison"]
+    },
+    {
+      "case_id": "missing-password",
+      "question": "What is DARWIN's administrator password?",
+      "should_answer": false,
+      "expected_source_suffixes": [],
+      "required_terms": [],
+      "tags": ["no-answer", "hallucination"]
+    }
+  ]
+}

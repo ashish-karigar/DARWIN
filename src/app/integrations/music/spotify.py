@@ -302,6 +302,22 @@ def play(song: str, artist: str = "") -> str:
         artists = ", ".join(
             item["name"] for item in track.get("artists", [])
         )
+        from app.services.media_state import publish_now_playing
+
+        album = track.get("album") or {}
+        images = album.get("images") or []
+        publish_now_playing(
+            {
+                "provider": "spotify",
+                "title": track.get("name") or song,
+                "artist": artists,
+                "album": album.get("name") or "",
+                "artworkUrl": images[0].get("url") if images else None,
+                "durationMs": int(track.get("duration_ms") or 0),
+                "progressMs": 0,
+                "isPlaying": True,
+            }
+        )
 
         return f"Playing {track['name']} by {artists} on Spotify."
 
@@ -323,18 +339,24 @@ def control(action: PlaybackAction) -> str:
 
         if action in {"pause", "stop"}:
             client.pause_playback(device_id=device_id)
+            _publish_current_playback(client, False)
             return "Spotify playback paused."
 
         if action == "resume":
             client.start_playback(device_id=device_id)
+            _publish_current_playback(client, True)
             return "Spotify playback resumed."
 
         if action == "next":
             client.next_track(device_id=device_id)
+            time.sleep(0.25)
+            _publish_current_playback(client, True)
             return "Skipped to the next Spotify track."
 
         if action == "previous":
             client.previous_track(device_id=device_id)
+            time.sleep(0.25)
+            _publish_current_playback(client, True)
             return "Returned to the previous Spotify track."
 
         raise ValueError(f"Unsupported playback action: {action}")
@@ -345,6 +367,29 @@ def control(action: PlaybackAction) -> str:
         raise SpotifyPlaybackError(
             f"Spotify playback control failed: {exc}"
         ) from exc
+
+
+def _publish_current_playback(client: spotipy.Spotify, playing: bool) -> None:
+    playback = client.current_playback() or {}
+    track = playback.get("item") or {}
+    if not track:
+        return
+    from app.services.media_state import publish_now_playing
+
+    album = track.get("album") or {}
+    images = album.get("images") or []
+    publish_now_playing(
+        {
+            "provider": "spotify",
+            "title": track.get("name") or "Unknown track",
+            "artist": ", ".join(item.get("name", "") for item in track.get("artists", [])),
+            "album": album.get("name") or "",
+            "artworkUrl": images[0].get("url") if images else None,
+            "durationMs": int(track.get("duration_ms") or 0),
+            "progressMs": int(playback.get("progress_ms") or 0),
+            "isPlaying": playing,
+        }
+    )
 
 
 def main() -> None:

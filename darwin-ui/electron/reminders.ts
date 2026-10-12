@@ -11,10 +11,16 @@ const actionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('openSettings') }),
   z.object({ action: z.literal('list') }),
   z.object({
+    action: z.literal('ensureList'),
+    title: z.string().trim().min(1).max(100)
+  }),
+  z.object({
     action: z.literal('create'),
     title: z.string().trim().min(1).max(500),
     dueDate: z.iso.datetime().nullable().optional(),
-    calendarId: z.string().min(1).max(1000).optional()
+    calendarId: z.string().min(1).max(1000).optional(),
+    notes: z.string().max(5000).optional(),
+    priority: z.number().int().min(0).max(9).optional()
   }),
   z.object({
     action: z.literal('complete'),

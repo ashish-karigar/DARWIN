@@ -17,7 +17,15 @@ const stateEventSchema = z.union([
     connected: z.boolean(),
     source: z.string().length(12)
   }),
-  z.object({ audioLevel: z.number().min(0).max(1), source: z.string().length(12) })
+  z.object({ audioLevel: z.number().min(0).max(1), source: z.string().length(12) }),
+  z.object({
+    activity: z.object({
+      requestId: z.string().uuid(),
+      skill: z.string().min(1).max(80),
+      phase: z.enum(['started', 'completed', 'failed'])
+    }),
+    source: z.string().length(12)
+  })
 ])
 
 interface AssistantStore {
@@ -47,7 +55,16 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
     const subscriptionId = bridge.subscribeState((value) => {
       const event = stateEventSchema.safeParse(value)
       if (!event.success) return
-      if ('audioLevel' in event.data) set({ audioLevel: event.data.audioLevel })
+      if ('activity' in event.data) {
+        if (event.data.activity.phase === 'started') {
+          const zone =
+            [...event.data.activity.skill].reduce(
+              (total, character) => total + character.charCodeAt(0),
+              0
+            ) % 6
+          window.dispatchEvent(new CustomEvent('darwin:activity', { detail: { zone } }))
+        }
+      } else if ('audioLevel' in event.data) set({ audioLevel: event.data.audioLevel })
       else
         set({
           state: event.data.state,

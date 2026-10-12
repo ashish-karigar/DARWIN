@@ -1,0 +1,953 @@
+<title>DARWIN RAG Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --panel: #ffffff;
+    --border: #e1e4ea;
+    --border-strong: #c7cdd9;
+    --ink: #1f2430;
+    --ink-dim: #5b6472;
+    --ink-faint: #8a92a3;
+
+    --ingestion: #0e9f6e;   --ingestion-bg: #e9f8f1;
+    --query: #6355d1;       --query-bg: #eeecfc;
+    --storage: #475569;     --storage-bg: #eef1f5;
+    --retrieval: #2563eb;   --retrieval-bg: #eaf1ff;
+    --correction: #c2740d;  --correction-bg: #fdf1de;
+    --generation: #a21caf;  --generation-bg: #fbeafa;
+    --verification: #be123c;--verification-bg: #fde8ee;
+
+    --flow: #aeb6c4;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .mono { font-family: "IBM Plex Mono", "SF Mono", Consolas, monospace; }
+
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 56px 32px 100px;
+  }
+
+  /* ---------- Header ---------- */
+  header.top {
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--query);
+    margin: 0 0 12px;
+  }
+  h1 {
+    font-size: clamp(32px, 4.4vw, 46px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .dek {
+    color: var(--ink-dim);
+    max-width: 76ch;
+    margin: 0 0 28px;
+    font-size: 16px;
+  }
+  .specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 1px 0 0 1px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .spec {
+    padding: 16px 22px;
+    border: 1px solid var(--border);
+    margin: 0 0 -1px -1px;
+  }
+  .spec-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+  .spec-value {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+
+  /* ---------- Legend ---------- */
+  .legend {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 20px 26px;
+    margin-bottom: 56px;
+  }
+  .legend-title {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 14px;
+  }
+  .legend-zones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin-bottom: 16px;
+  }
+  .zone-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+  .zone-chip .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .legend-rule {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0 16px;
+  }
+  .legend-rows {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 32px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .legend-item svg { flex: none; display: block; }
+
+  /* ---------- Sections ---------- */
+  section.sheet { margin-bottom: 64px; }
+  section.sheet.hero { margin-bottom: 72px; }
+
+  .sheet-tag {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .dek2 {
+    color: var(--ink-dim);
+    max-width: 78ch;
+    margin: 0 0 26px;
+    font-size: 15px;
+  }
+
+  figure {
+    margin: 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    overflow-x: auto;
+  }
+  figure svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    min-width: 720px;
+  }
+  figcaption {
+    font-size: 13.5px;
+    color: var(--ink-dim);
+    margin-top: 18px;
+    max-width: 94ch;
+  }
+  figcaption code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+
+  .note {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: var(--correction-bg);
+    border-left: 3px solid var(--correction);
+    border-radius: 0 8px 8px 0;
+    max-width: 94ch;
+  }
+  .note .tag {
+    display: block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--correction);
+    margin-bottom: 6px;
+  }
+  .note p { margin: 0; font-size: 13.5px; color: var(--ink); }
+  .note code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    background: rgba(0,0,0,0.05);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer { border-top: 1px solid var(--border); padding-top: 30px; }
+  .footer-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; }
+  .footer-heading {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 14px;
+  }
+  .ref-list { list-style: none; margin: 0; padding: 0; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-dim); }
+  .ref-list li { padding: 6px 0; border-top: 1px solid var(--border); }
+  .ref-list li:first-child { border-top: none; }
+  .changelog { list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--ink-dim); }
+  .changelog li { padding: 8px 0; border-top: 1px solid var(--border); }
+  .changelog li:first-child { border-top: none; }
+  .changelog b { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    .page { padding: 32px 16px 64px; }
+    .footer-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="page">
+
+  <!-- ============ HEADER ============ -->
+  <header class="top">
+    <p class="eyebrow">DARWIN · RAG subsystem</p>
+    <h1>How a document becomes an answer</h1>
+    <p class="dek">Traced end to end from the running code: ingestion writes into the same stores that retrieval later reads, a question is analyzed and routed before it ever hits the index, evidence is graded before generation, and a generated answer is verified before it ships.</p>
+    <div class="specs">
+      <div class="spec"><div class="spec-label">Corpus (production)</div><div class="spec-value">4 docs · 206 chunks</div></div>
+      <div class="spec"><div class="spec-label">Retriever</div><div class="spec-value">dense + lexical, RRF k=60</div></div>
+      <div class="spec"><div class="spec-label">Reranker</div><div class="spec-value">ms-marco-MiniLM-L6-v2</div></div>
+      <div class="spec"><div class="spec-label">Generator</div><div class="spec-value">Groq gpt-oss-120b → Ollama qwen3:14b</div></div>
+      <div class="spec"><div class="spec-label">Verifier</div><div class="spec-value">Groq qwen3.8-27b → Ollama qwen3:8b</div></div>
+      <div class="spec"><div class="spec-label">Embeddings</div><div class="spec-value">nomic-embed-text (local)</div></div>
+    </div>
+  </header>
+
+  <!-- ============ LEGEND ============ -->
+  <div class="legend">
+    <p class="legend-title">How to read these diagrams</p>
+    <div class="legend-zones">
+      <span class="zone-chip" style="background:var(--ingestion-bg);color:var(--ingestion);"><span class="dot" style="background:var(--ingestion);"></span>Ingestion</span>
+      <span class="zone-chip" style="background:var(--query-bg);color:var(--query);"><span class="dot" style="background:var(--query);"></span>Query understanding</span>
+      <span class="zone-chip" style="background:var(--storage-bg);color:var(--storage);"><span class="dot" style="background:var(--storage);"></span>Shared storage</span>
+      <span class="zone-chip" style="background:var(--retrieval-bg);color:var(--retrieval);"><span class="dot" style="background:var(--retrieval);"></span>Retrieval</span>
+      <span class="zone-chip" style="background:var(--correction-bg);color:var(--correction);"><span class="dot" style="background:var(--correction);"></span>Evidence &amp; correction</span>
+      <span class="zone-chip" style="background:var(--generation-bg);color:var(--generation);"><span class="dot" style="background:var(--generation);"></span>Generation</span>
+      <span class="zone-chip" style="background:var(--verification-bg);color:var(--verification);"><span class="dot" style="background:var(--verification);"></span>Verification</span>
+    </div>
+    <div class="legend-rule"></div>
+    <div class="legend-rows">
+      <span class="legend-item">
+        <svg width="30" height="18" viewBox="0 0 30 18"><rect x="1" y="1" width="28" height="16" rx="4" fill="#eaf1ff" stroke="#2563eb" stroke-width="1.5"/></svg>
+        Solid border — deterministic, local, no LLM call
+      </span>
+      <span class="legend-item">
+        <svg width="30" height="18" viewBox="0 0 30 18"><rect x="1" y="1" width="28" height="16" rx="4" fill="#eaf1ff" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 2.5"/></svg>
+        Dashed border — calls an LLM, costs tokens + latency
+      </span>
+      <span class="legend-item">
+        <svg width="20" height="20" viewBox="0 0 20 20"><polygon points="10,1 19,10 10,19 1,10" fill="#fff" stroke="#1f2430" stroke-width="1.5"/></svg>
+        Decision point — branches the flow
+      </span>
+      <span class="legend-item">
+        <svg width="34" height="12" viewBox="0 0 34 12"><line x1="1" y1="6" x2="33" y2="6" stroke="#0e9f6e" stroke-width="2"/></svg>
+        Write, at ingestion time
+      </span>
+      <span class="legend-item">
+        <svg width="34" height="12" viewBox="0 0 34 12"><line x1="1" y1="6" x2="33" y2="6" stroke="#2563eb" stroke-width="2"/></svg>
+        Read, at query time
+      </span>
+    </div>
+  </div>
+
+  <!-- ============ MASTER DIAGRAM ============ -->
+  <section class="sheet hero">
+    <span class="sheet-tag">Complete pipeline — document in, answer out</span>
+    <h2>The whole approach, end to end</h2>
+    <p class="dek2">Two independent entry points — a document being uploaded, a question being asked — write into and read from the same three stores, then merge into one retrieval → correction → generation → verification pipeline. Color marks which phase a step belongs to; border style marks whether it costs an LLM call.</p>
+    <figure>
+      <svg viewBox="0 0 1500 1720" role="img" aria-label="A document upload flows through parsing, chunking and embedding into a document store and vector index, and chunk text into a lexical index. A question flows through query analysis, strategy routing, query embedding and lexical term extraction, reading from those same three stores via kNN and BM25 search. Results are fused, reranked, resolved back to parent documents, and graded for sufficiency; insufficient evidence triggers a rewrite and corrective re-retrieval loop. Sufficient context is assembled and sent to an LLM to generate an answer, which is verified deterministically then by an LLM judge; unsupported answers are regenerated, escalated to a web search, or abstained, while supported answers are finalized.">
+
+        <defs>
+          <marker id="m-flow" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--flow)"/></marker>
+          <marker id="m-write" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--ingestion)"/></marker>
+          <marker id="m-read" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--retrieval)"/></marker>
+          <marker id="m-corr" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--correction)"/></marker>
+          <marker id="m-gen" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--generation)"/></marker>
+        </defs>
+
+        <!-- ===== ZONE BACKGROUNDS ===== -->
+        <rect x="24" y="16" width="330" height="500" rx="16" fill="var(--ingestion-bg)"/>
+        <text x="48" y="44" fill="var(--ingestion)" font-size="12" font-weight="700" letter-spacing="0.06em" class="mono">1 · INGESTION</text>
+
+        <rect x="1146" y="16" width="330" height="500" rx="16" fill="var(--query-bg)"/>
+        <text x="1170" y="44" fill="var(--query)" font-size="12" font-weight="700" letter-spacing="0.06em" class="mono">2 · QUERY UNDERSTANDING</text>
+
+        <rect x="24" y="540" width="1452" height="150" rx="16" fill="var(--storage-bg)"/>
+        <text x="48" y="568" fill="var(--storage)" font-size="12" font-weight="700" letter-spacing="0.06em" class="mono">3 · SHARED STORAGE</text>
+
+        <rect x="24" y="712" width="1452" height="260" rx="16" fill="var(--retrieval-bg)"/>
+        <text x="48" y="740" fill="var(--retrieval)" font-size="12" font-weight="700" letter-spacing="0.06em" class="mono">4 · RETRIEVAL</text>
+
+        <rect x="24" y="1000" width="1452" height="260" rx="16" fill="var(--correction-bg)"/>
+        <text x="48" y="1028" fill="var(--correction)" font-size="12" font-weight="700" letter-spacing="0.06em" class="mono">5 · EVIDENCE &amp; CORRECTION</text>
+
+        <rect x="24" y="1288" width="1452" height="190" rx="16" fill="var(--generation-bg)"/>
+        <text x="48" y="1316" fill="var(--generation)" font-size="12" font-weight="700" letter-spacing="0.06em" class="mono">6 · GENERATION</text>
+
+        <rect x="24" y="1506" width="1452" height="196" rx="16" fill="var(--verification-bg)"/>
+        <text x="48" y="1534" fill="var(--verification)" font-size="12" font-weight="700" letter-spacing="0.06em" class="mono">7 · VERIFICATION</text>
+
+        <!-- ===== 1. INGESTION (left column) ===== -->
+        <rect x="60" y="70" width="260" height="60" rx="8" fill="#fff" stroke="var(--ingestion)" stroke-width="1.5"/>
+        <text x="190" y="94" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Upload a document</text>
+        <text x="190" y="112" text-anchor="middle" font-size="10.5" fill="var(--ingestion)">pdf · markdown/web · image · code</text>
+
+        <line x1="190" y1="130" x2="190" y2="164" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="60" y="164" width="260" height="60" rx="8" fill="#fff" stroke="var(--ingestion)" stroke-width="1.5"/>
+        <text x="190" y="188" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Parser router</text>
+        <text x="190" y="206" text-anchor="middle" font-size="10.5" fill="var(--ingestion)">document_cascade.py</text>
+
+        <line x1="140" y1="224" x2="90" y2="252" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+        <line x1="240" y1="224" x2="290" y2="252" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="60" y="252" width="120" height="60" rx="8" fill="var(--ingestion-bg)" stroke="var(--ingestion)" stroke-width="1.5"/>
+        <text x="120" y="276" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">Deterministic</text>
+        <text x="120" y="291" text-anchor="middle" font-size="9.5" fill="var(--ingestion)">Docling · Trafilatura</text>
+
+        <rect x="200" y="252" width="120" height="60" rx="8" fill="var(--ingestion-bg)" stroke="var(--ingestion)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="260" y="272" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">LLM / vision</text>
+        <text x="260" y="286" text-anchor="middle" font-size="9" fill="var(--ingestion)">only if flagged</text>
+        <text x="260" y="298" text-anchor="middle" font-size="9" fill="var(--ingestion)">(tables, OCR, order)</text>
+
+        <line x1="120" y1="312" x2="170" y2="340" stroke="var(--flow)" stroke-width="1.5"/>
+        <line x1="260" y1="312" x2="210" y2="340" stroke="var(--flow)" stroke-width="1.5"/>
+        <line x1="190" y1="338" x2="190" y2="344" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="60" y="344" width="260" height="60" rx="8" fill="#fff" stroke="var(--ingestion)" stroke-width="1.5"/>
+        <text x="190" y="368" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Chunking</text>
+        <text x="190" y="386" text-anchor="middle" font-size="10.5" fill="var(--ingestion)">384 tok/chunk, 64 overlap</text>
+
+        <line x1="190" y1="404" x2="190" y2="438" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="60" y="438" width="260" height="60" rx="8" fill="#fff" stroke="var(--ingestion)" stroke-width="1.5"/>
+        <text x="190" y="462" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Embed chunks</text>
+        <text x="190" y="480" text-anchor="middle" font-size="10.5" fill="var(--ingestion)">nomic-embed-text, local</text>
+
+        <!-- ===== 2. QUERY UNDERSTANDING (right column) ===== -->
+        <rect x="1180" y="70" width="260" height="60" rx="8" fill="#fff" stroke="var(--query)" stroke-width="1.5"/>
+        <text x="1310" y="94" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Ask a question</text>
+        <text x="1310" y="112" text-anchor="middle" font-size="10.5" fill="var(--query)">+ conversation context</text>
+
+        <line x1="1310" y1="130" x2="1310" y2="164" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="1180" y="164" width="260" height="66" rx="8" fill="var(--query-bg)" stroke="var(--query)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="1310" y="188" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Query Analyzer</text>
+        <text x="1310" y="205" text-anchor="middle" font-size="9.5" fill="var(--query)">patterns first, else LLM decision</text>
+        <text x="1310" y="219" text-anchor="middle" font-size="9.5" fill="var(--query)">picks direct / decompose / step-back</text>
+
+        <line x1="1310" y1="230" x2="1310" y2="252" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <polygon points="1310,246 1382,282 1310,318 1238,282" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="1310" y="286" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">strategy?</text>
+        <text x="1450" y="270" font-size="9" fill="var(--ink-faint)" text-anchor="end">direct / decompose /</text>
+        <text x="1450" y="282" font-size="9" fill="var(--ink-faint)" text-anchor="end">step-back / conversation</text>
+
+        <line x1="1310" y1="312" x2="1310" y2="344" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="1180" y="344" width="260" height="60" rx="8" fill="#fff" stroke="var(--query)" stroke-width="1.5"/>
+        <text x="1310" y="368" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Formulate 1–2 queries</text>
+        <text x="1310" y="386" text-anchor="middle" font-size="10.5" fill="var(--query)">one retrieval pass per query, below</text>
+
+        <line x1="1260" y1="404" x2="1240" y2="438" stroke="var(--flow)" stroke-width="1.5"/>
+        <line x1="1360" y1="404" x2="1380" y2="438" stroke="var(--flow)" stroke-width="1.5"/>
+
+        <rect x="1180" y="438" width="120" height="60" rx="8" fill="var(--query-bg)" stroke="var(--query)" stroke-width="1.5"/>
+        <text x="1240" y="462" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">Embed query</text>
+        <text x="1240" y="477" text-anchor="middle" font-size="9" fill="var(--query)">dense vector</text>
+
+        <rect x="1320" y="438" width="120" height="60" rx="8" fill="var(--query-bg)" stroke="var(--query)" stroke-width="1.5"/>
+        <text x="1380" y="458" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">Lexical terms</text>
+        <text x="1380" y="472" text-anchor="middle" font-size="9" fill="var(--query)">BM25 tokens,</text>
+        <text x="1380" y="484" text-anchor="middle" font-size="9" fill="var(--query)">raw text</text>
+
+        <!-- ===== 3. SHARED STORAGE ===== -->
+        <rect x="60" y="592" width="260" height="80" rx="8" fill="#fff" stroke="var(--storage)" stroke-width="1.5"/>
+        <text x="190" y="618" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Document Store</text>
+        <text x="190" y="636" text-anchor="middle" font-size="10" fill="var(--storage)">whole document, SQLite</text>
+        <text x="190" y="650" text-anchor="middle" font-size="10" fill="var(--storage)">+ chunk → parent map</text>
+
+        <rect x="610" y="592" width="280" height="80" rx="8" fill="#fff" stroke="var(--storage)" stroke-width="1.5"/>
+        <text x="750" y="618" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Vector Index</text>
+        <text x="750" y="636" text-anchor="middle" font-size="10" fill="var(--storage)">Chroma — child chunk embeddings</text>
+        <text x="750" y="650" text-anchor="middle" font-size="10" fill="var(--storage)">cosine similarity search</text>
+
+        <rect x="1180" y="592" width="260" height="80" rx="8" fill="#fff" stroke="var(--storage)" stroke-width="1.5"/>
+        <text x="1310" y="618" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Lexical Index</text>
+        <text x="1310" y="636" text-anchor="middle" font-size="10" fill="var(--storage)">SQLite FTS — BM25 over</text>
+        <text x="1310" y="650" text-anchor="middle" font-size="10" fill="var(--storage)">child chunk text</text>
+
+        <!-- write arrows (ingestion -> storage) -->
+        <line x1="230" y1="498" x2="700" y2="592" stroke="var(--ingestion)" stroke-width="1.75" marker-end="url(#m-write)"/>
+        <text x="430" y="530" font-size="9.5" fill="var(--ingestion)" class="mono">write: child vectors</text>
+
+        <line x1="190" y1="498" x2="190" y2="592" stroke="var(--ingestion)" stroke-width="1.75" marker-end="url(#m-write)"/>
+        <text x="196" y="545" font-size="9.5" fill="var(--ingestion)" class="mono">write: parent + map</text>
+
+        <line x1="270" y1="404" x2="1260" y2="592" stroke="var(--ingestion)" stroke-width="1.75" marker-end="url(#m-write)"/>
+        <text x="700" y="470" font-size="9.5" fill="var(--ingestion)" class="mono">write: index chunk text (BM25)</text>
+
+        <!-- read arrows (query -> storage) -->
+        <line x1="1240" y1="498" x2="820" y2="592" stroke="var(--retrieval)" stroke-width="1.75" marker-end="url(#m-read)"/>
+        <text x="960" y="580" text-anchor="end" font-size="9.5" fill="var(--retrieval)" class="mono">read: kNN, top-20</text>
+
+        <line x1="1380" y1="498" x2="1330" y2="592" stroke="var(--retrieval)" stroke-width="1.75" marker-end="url(#m-read)"/>
+        <text x="1400" y="545" text-anchor="end" font-size="9.5" fill="var(--retrieval)" class="mono">read: BM25, top-20</text>
+
+        <!-- ===== 4. RETRIEVAL ===== -->
+        <line x1="750" y1="672" x2="750" y2="746" stroke="var(--flow)" stroke-width="1.5"/>
+        <line x1="1310" y1="672" x2="800" y2="746" stroke="var(--flow)" stroke-width="1.5"/>
+        <line x1="190" y1="672" x2="190" y2="900" stroke="var(--flow)" stroke-width="1.25" stroke-dasharray="3 3"/>
+
+        <rect x="610" y="746" width="280" height="60" rx="8" fill="#fff" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <text x="750" y="770" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Hybrid fusion</text>
+        <text x="750" y="788" text-anchor="middle" font-size="10.5" fill="var(--retrieval)">Reciprocal Rank Fusion, k=60</text>
+
+        <line x1="750" y1="806" x2="750" y2="830" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="610" y="830" width="280" height="60" rx="8" fill="#fff" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <text x="750" y="854" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Cross-encoder rerank</text>
+        <text x="750" y="872" text-anchor="middle" font-size="10.5" fill="var(--retrieval)">ms-marco-MiniLM-L6-v2</text>
+
+        <line x1="190" y1="900" x2="190" y2="936" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <line x1="190" y1="936" x2="620" y2="936" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <line x1="620" y1="936" x2="750" y2="936" stroke="var(--retrieval)" stroke-width="1.5" marker-end="url(#m-read)"/>
+        <text x="300" y="928" font-size="9.5" fill="var(--retrieval)" class="mono">read: fetch parent doc for top hits</text>
+
+        <rect x="610" y="936" width="280" height="60" rx="8" fill="#fff" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <text x="750" y="960" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Resolve parent documents</text>
+        <text x="750" y="978" text-anchor="middle" font-size="10.5" fill="var(--retrieval)">chunk hits → full parent context</text>
+
+        <!-- ===== 5. EVIDENCE & CORRECTION ===== -->
+        <line x1="750" y1="996" x2="750" y2="1034" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="610" y="1034" width="280" height="74" rx="8" fill="var(--correction-bg)" stroke="var(--correction)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="750" y="1058" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Evidence judges</text>
+        <text x="750" y="1076" text-anchor="middle" font-size="9.5" fill="var(--correction)">deterministic corroboration / anchor</text>
+        <text x="750" y="1090" text-anchor="middle" font-size="9.5" fill="var(--correction)">shortcut first — LLM only for the middle band</text>
+
+        <line x1="750" y1="1108" x2="750" y2="1136" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <polygon points="750,1136 830,1180 750,1224 670,1180" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="750" y="1176" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">evidence</text>
+        <text x="750" y="1190" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">sufficient?</text>
+
+        <line x1="670" y1="1180" x2="500" y2="1180" stroke="var(--ink-dim)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+        <text x="585" y="1172" text-anchor="middle" font-size="10" fill="var(--ink-dim)" class="mono">no</text>
+
+        <rect x="280" y="1150" width="220" height="60" rx="8" fill="var(--correction-bg)" stroke="var(--correction)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="390" y="1174" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Rewrite the need</text>
+        <text x="390" y="1192" text-anchor="middle" font-size="10" fill="var(--correction)">Ollama, one attempt</text>
+
+        <line x1="390" y1="1210" x2="390" y2="1234" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="280" y="1234" width="220" height="60" rx="8" fill="var(--correction-bg)" stroke="var(--correction)" stroke-width="1.5"/>
+        <text x="390" y="1258" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Corrective retrieval</text>
+        <text x="390" y="1276" text-anchor="middle" font-size="10" fill="var(--correction)">re-enters Retrieval, above</text>
+
+        <path d="M280,1264 C210,1264 210,790 610,776" fill="none" stroke="var(--correction)" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#m-corr)"/>
+        <text x="150" y="1000" font-size="9.5" fill="var(--correction)" class="mono" transform="rotate(-90 150 1000)">re-run fusion for the rewritten need</text>
+
+        <line x1="830" y1="1180" x2="990" y2="1180" stroke="var(--ink-dim)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+        <text x="905" y="1172" text-anchor="middle" font-size="10" fill="var(--ink-dim)" class="mono">yes</text>
+
+        <!-- ===== 6. GENERATION ===== -->
+        <rect x="990" y="1150" width="260" height="60" rx="8" fill="#fff" stroke="var(--generation)" stroke-width="1.5"/>
+        <text x="1120" y="1174" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Context Builder</text>
+        <text x="1120" y="1192" text-anchor="middle" font-size="10" fill="var(--generation)">≤3 parents/need, ≤3000 tokens</text>
+
+        <line x1="1120" y1="1210" x2="1120" y2="1338" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="990" y="1338" width="260" height="90" rx="8" fill="var(--generation-bg)" stroke="var(--generation)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="1120" y="1364" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">LLM Generation</text>
+        <text x="1120" y="1382" text-anchor="middle" font-size="10" fill="var(--generation)">Groq gpt-oss-120b</text>
+        <text x="1120" y="1396" text-anchor="middle" font-size="10" fill="var(--generation)">→ Ollama qwen3:14b fallback</text>
+        <text x="1120" y="1414" text-anchor="middle" font-size="9" fill="var(--ink-faint)">told every information need to cover</text>
+
+        <!-- ===== 7. VERIFICATION ===== -->
+        <line x1="1120" y1="1428" x2="1120" y2="1556" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#m-flow)"/>
+
+        <rect x="990" y="1556" width="260" height="94" rx="8" fill="var(--verification-bg)" stroke="var(--verification)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="1120" y="1580" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Verify claims</text>
+        <text x="1120" y="1598" text-anchor="middle" font-size="9.5" fill="var(--verification)">deterministic checks first —</text>
+        <text x="1120" y="1612" text-anchor="middle" font-size="9.5" fill="var(--verification)">structured, exact, lexical, embedding</text>
+        <text x="1120" y="1626" text-anchor="middle" font-size="9.5" fill="var(--verification)">LLM judge only on a miss</text>
+
+        <line x1="1120" y1="1650" x2="1120" y2="1674" stroke="var(--flow)" stroke-width="1.5"/>
+        <text x="900" y="1700" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink-faint)">continued below</text>
+      </svg>
+      <figcaption>The evidence-judge box is the shortcut that resolves most passages before any LLM ever sees them — see Sheet 03 for the exact fork. The corrective loop re-enters retrieval rather than looping the whole pipeline, so only the unmet need is re-fetched.</figcaption>
+    </figure>
+
+    <figure style="margin-top:24px;">
+      <svg viewBox="0 0 1500 420" role="img" aria-label="Continuation: verified claims either finalize as a grounded, cited answer, or trigger regeneration, a web search, or abstention when attempts are exhausted.">
+        <rect x="24" y="16" width="1452" height="388" rx="16" fill="var(--verification-bg)"/>
+        <text x="48" y="44" fill="var(--verification)" font-size="12" font-weight="700" letter-spacing="0.06em" class="mono">7 · VERIFICATION (continued)</text>
+
+        <polygon points="750,80 830,124 750,168 670,124" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="750" y="120" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">claims</text>
+        <text x="750" y="134" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">supported?</text>
+
+        <line x1="830" y1="124" x2="1030" y2="124" stroke="var(--ink-dim)" stroke-width="1.5" marker-end="url(#a5f)"/>
+        <text x="930" y="116" text-anchor="middle" font-size="10" fill="var(--ink-dim)" class="mono">yes</text>
+        <defs><marker id="a5f" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--ink-dim)"/></marker></defs>
+
+        <rect x="1030" y="94" width="260" height="60" rx="8" fill="#fff" stroke="var(--verification)" stroke-width="1.5"/>
+        <text x="1160" y="118" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Finalize</text>
+        <text x="1160" y="136" text-anchor="middle" font-size="10.5" fill="var(--verification)">grounded, cited answer</text>
+
+        <line x1="750" y1="168" x2="750" y2="192" stroke="var(--ink-dim)" stroke-width="1.5"/>
+        <text x="766" y="184" font-size="10" fill="var(--ink-dim)" class="mono">no</text>
+        <line x1="230" y1="192" x2="1050" y2="192" stroke="var(--ink-dim)" stroke-width="1.5"/>
+        <line x1="230" y1="192" x2="230" y2="216" stroke="var(--ink-dim)" stroke-width="1.5" marker-end="url(#a5f)"/>
+        <line x1="640" y1="192" x2="640" y2="216" stroke="var(--ink-dim)" stroke-width="1.5" marker-end="url(#a5f)"/>
+        <line x1="1050" y1="192" x2="1050" y2="216" stroke="var(--ink-dim)" stroke-width="1.5" marker-end="url(#a5f)"/>
+
+        <rect x="120" y="216" width="220" height="64" rx="8" fill="var(--generation-bg)" stroke="var(--generation)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="230" y="238" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Regenerate</text>
+        <text x="230" y="256" text-anchor="middle" font-size="10" fill="var(--generation)">attempts remain, fed the gap</text>
+        <text x="230" y="270" text-anchor="middle" font-size="9" fill="var(--generation)">↑ back to Generation, above</text>
+
+        <rect x="530" y="216" width="220" height="64" rx="8" fill="var(--generation-bg)" stroke="var(--generation)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="640" y="242" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Search the web</text>
+        <text x="640" y="260" text-anchor="middle" font-size="10" fill="var(--generation)">retries exhausted, web allowed</text>
+
+        <rect x="940" y="216" width="220" height="64" rx="8" fill="#fff" stroke="var(--verification)" stroke-width="1.5"/>
+        <text x="1050" y="242" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Abstain</text>
+        <text x="1050" y="260" text-anchor="middle" font-size="10" fill="var(--verification)">exhausted, no web allowed</text>
+
+        <line x1="1050" y1="280" x2="1160" y2="330" stroke="var(--ink-dim)" stroke-width="1.5" marker-end="url(#a5f)"/>
+        <text x="1130" y="300" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">no reliable answer</text>
+        <rect x="1030" y="330" width="260" height="56" rx="8" fill="#fff" stroke="var(--verification)" stroke-width="1.5"/>
+        <text x="1160" y="352" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Finalize</text>
+        <text x="1160" y="369" text-anchor="middle" font-size="10" fill="var(--verification)">abstention message, cited gap</text>
+      </svg>
+      <figcaption>Regenerate loops back up to Generation (previous panel) with the specific gap named — see Sheet 04 for the compact single-page version of this loop with the feedback arrow drawn in full.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ SHEET 01 : SYSTEM CONTEXT ============ -->
+  <section class="sheet">
+    <span class="sheet-tag">Sheet 01 — System context</span>
+    <h2>Where RAG sits inside Darwin</h2>
+    <p class="dek2">The RAG pipeline isn't the assistant — it's one tool the supervisor agent reaches for, alongside camera control and voice, whenever a question needs the knowledge base rather than a live action.</p>
+    <figure>
+      <svg viewBox="0 0 1100 300" role="img" aria-label="A user's message goes to the DARWIN supervisor agent, which routes knowledge questions through its knowledge_search tool into the RagService subsystem, covering ingestion and the ask pipeline shown in the complete pipeline diagram.">
+        <defs>
+          <marker id="a1" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--flow)"/></marker>
+          <marker id="a1q" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--query)"/></marker>
+        </defs>
+
+        <rect x="30" y="110" width="150" height="70" rx="8" fill="#fff" stroke="var(--border-strong)" stroke-width="1.5"/>
+        <text x="105" y="140" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">User</text>
+        <text x="105" y="158" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">chat message</text>
+
+        <line x1="180" y1="145" x2="230" y2="145" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a1)"/>
+
+        <rect x="230" y="50" width="320" height="190" rx="10" fill="#fff" stroke="var(--border-strong)" stroke-width="1.5"/>
+        <text x="390" y="78" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">DARWIN Supervisor</text>
+        <text x="390" y="96" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">agent · LangGraph tool router</text>
+
+        <rect x="258" y="118" width="104" height="34" rx="6" fill="none" stroke="var(--border)" stroke-width="1"/>
+        <text x="310" y="139" text-anchor="middle" font-size="10" fill="var(--ink-faint)">camera_control</text>
+        <rect x="372" y="118" width="76" height="34" rx="6" fill="none" stroke="var(--border)" stroke-width="1"/>
+        <text x="410" y="139" text-anchor="middle" font-size="10" fill="var(--ink-faint)">voice</text>
+        <rect x="458" y="118" width="76" height="34" rx="6" fill="none" stroke="var(--border)" stroke-width="1"/>
+        <text x="496" y="139" text-anchor="middle" font-size="10" fill="var(--ink-faint)">…more</text>
+
+        <rect x="258" y="176" width="272" height="40" rx="8" fill="var(--query-bg)" stroke="var(--query)" stroke-width="1.5"/>
+        <text x="394" y="200" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--query)">knowledge_search(query)</text>
+
+        <line x1="530" y1="196" x2="590" y2="196" stroke="var(--query)" stroke-width="2" marker-end="url(#a1q)"/>
+
+        <rect x="590" y="20" width="470" height="260" rx="10" fill="none" stroke="var(--border-strong)" stroke-width="1.5" stroke-dasharray="8 3 2 3"/>
+        <text x="825" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">RagService</text>
+        <text x="825" y="66" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">the RAG subsystem — sheets 02–04 + complete pipeline</text>
+
+        <rect x="616" y="100" width="200" height="76" rx="8" fill="var(--ingestion-bg)" stroke="var(--ingestion)" stroke-width="1.5"/>
+        <text x="716" y="128" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Ingest a document</text>
+        <text x="716" y="146" text-anchor="middle" font-size="10" fill="var(--ingestion)">→ Sheet 02, offline</text>
+
+        <rect x="616" y="192" width="200" height="76" rx="8" fill="var(--query-bg)" stroke="var(--query)" stroke-width="1.5"/>
+        <text x="716" y="220" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Ask a question</text>
+        <text x="716" y="238" text-anchor="middle" font-size="10" fill="var(--query)">→ Sheets 03–04, per query</text>
+
+        <rect x="836" y="100" width="200" height="168" rx="8" fill="var(--storage-bg)" stroke="var(--storage)" stroke-width="1.5"/>
+        <text x="936" y="126" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Four stores, one write</text>
+        <text x="936" y="150" text-anchor="middle" font-size="10.5" fill="var(--storage)">documents.sqlite3</text>
+        <text x="936" y="170" text-anchor="middle" font-size="10.5" fill="var(--storage)">chroma (vectors)</text>
+        <text x="936" y="190" text-anchor="middle" font-size="10.5" fill="var(--storage)">lexical.sqlite3 (BM25)</text>
+        <text x="936" y="210" text-anchor="middle" font-size="10.5" fill="var(--storage)">structured.sqlite3</text>
+        <text x="936" y="238" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">written once per document</text>
+      </svg>
+      <figcaption>The knowledge base is queried through exactly one tool call, <code>knowledge_search</code> — everything past that boundary is <code>RagService</code>, expanded in the complete pipeline diagram above.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ SHEET 02 : INGESTION ============ -->
+  <section class="sheet">
+    <span class="sheet-tag">Sheet 02 — Ingestion, offline per document</span>
+    <h2>Parsing escalates only when it has to</h2>
+    <p class="dek2">Most files take the cheap, deterministic path. A document only reaches an LLM if the deterministic parser actually flags a problem it can name.</p>
+    <figure>
+      <svg viewBox="0 0 1120 460" role="img" aria-label="Documents of various types enter a parser router. Most take a deterministic native parser; only ones flagged for broken reading order, complex tables, low OCR confidence or handwriting escalate to an LLM or vision assisted parser. Both paths converge on chunking, then fan out to index writes.">
+        <defs>
+          <marker id="a2" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--flow)"/></marker>
+        </defs>
+
+        <g font-size="11" fill="var(--ink-dim)">
+          <rect x="30" y="30" width="120" height="40" rx="6" fill="#fff" stroke="var(--border-strong)"/>
+          <text x="90" y="55" text-anchor="middle">pdf</text>
+          <rect x="30" y="86" width="120" height="40" rx="6" fill="#fff" stroke="var(--border-strong)"/>
+          <text x="90" y="111" text-anchor="middle">markdown / web</text>
+          <rect x="30" y="142" width="120" height="40" rx="6" fill="#fff" stroke="var(--border-strong)"/>
+          <text x="90" y="167" text-anchor="middle">image</text>
+          <rect x="30" y="198" width="120" height="40" rx="6" fill="#fff" stroke="var(--border-strong)"/>
+          <text x="90" y="223" text-anchor="middle">code</text>
+        </g>
+        <line x1="150" y1="134" x2="210" y2="134" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a2)"/>
+
+        <rect x="210" y="90" width="180" height="88" rx="8" fill="#fff" stroke="var(--ingestion)" stroke-width="1.5"/>
+        <text x="300" y="128" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Parser router</text>
+        <text x="300" y="148" text-anchor="middle" font-size="10.5" fill="var(--ingestion)">document_cascade.py</text>
+
+        <line x1="390" y1="112" x2="450" y2="70" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a2)"/>
+        <rect x="450" y="20" width="240" height="80" rx="8" fill="var(--ingestion-bg)" stroke="var(--ingestion)" stroke-width="1.5"/>
+        <text x="570" y="50" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Deterministic parser</text>
+        <text x="570" y="70" text-anchor="middle" font-size="10.5" fill="var(--ingestion)">native text · Docling · Trafilatura</text>
+        <text x="570" y="88" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">cheap · local · the default path</text>
+
+        <line x1="390" y1="156" x2="450" y2="200" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a2)"/>
+        <text x="404" y="182" fill="var(--ingestion)" font-size="9.5" class="mono">only if flagged ↓</text>
+        <rect x="450" y="150" width="240" height="90" rx="8" fill="var(--ingestion-bg)" stroke="var(--ingestion)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="570" y="180" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">LLM / vision-assisted</text>
+        <text x="570" y="200" text-anchor="middle" font-size="10" fill="var(--ingestion)">broken order · complex tables ·</text>
+        <text x="570" y="216" text-anchor="middle" font-size="10" fill="var(--ingestion)">low OCR confidence · handwriting</text>
+
+        <line x1="690" y1="60" x2="760" y2="120" stroke="var(--flow)" stroke-width="1.5"/>
+        <line x1="690" y1="196" x2="760" y2="128" stroke="var(--flow)" stroke-width="1.5"/>
+        <line x1="760" y1="124" x2="810" y2="124" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a2)"/>
+
+        <rect x="810" y="80" width="220" height="90" rx="8" fill="var(--ingestion-bg)" stroke="var(--ingestion)" stroke-width="1.5"/>
+        <text x="920" y="110" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Chunking pipeline</text>
+        <text x="920" y="130" text-anchor="middle" font-size="10" fill="var(--ingestion)">prose · table · image · code</text>
+        <text x="920" y="148" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">384 tokens/chunk, 64 overlap</text>
+
+        <line x1="920" y1="170" x2="920" y2="230" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a2)"/>
+
+        <g>
+          <rect x="700" y="280" width="150" height="80" rx="8" fill="#fff" stroke="var(--storage)" stroke-width="1.5"/>
+          <text x="775" y="310" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink)">Document store</text>
+          <text x="775" y="330" text-anchor="middle" font-size="9.5" fill="var(--storage)">SQLite, raw JSON</text>
+
+          <rect x="870" y="280" width="150" height="80" rx="8" fill="#fff" stroke="var(--storage)" stroke-width="1.5"/>
+          <text x="945" y="304" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink)">Vector index</text>
+          <text x="945" y="324" text-anchor="middle" font-size="9.5" fill="var(--storage)">Chroma</text>
+          <text x="945" y="340" text-anchor="middle" font-size="9.5" fill="var(--storage)">nomic-embed-text</text>
+
+          <rect x="1040" y="280" width="70" height="80" rx="8" fill="#fff" stroke="var(--storage)" stroke-width="1.5"/>
+          <text x="1075" y="308" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink)">Lexical</text>
+          <text x="1075" y="322" text-anchor="middle" font-size="9" fill="var(--storage)">FTS</text>
+          <text x="1075" y="336" text-anchor="middle" font-size="9" fill="var(--storage)">BM25</text>
+        </g>
+        <line x1="920" y1="230" x2="775" y2="280" stroke="var(--ingestion)" stroke-width="1.25"/>
+        <line x1="920" y1="230" x2="945" y2="280" stroke="var(--ingestion)" stroke-width="1.25"/>
+        <line x1="920" y1="230" x2="1075" y2="280" stroke="var(--ingestion)" stroke-width="1.25"/>
+        <text x="920" y="256" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">structured tables also reach a 4th store, omitted for space</text>
+      </svg>
+      <figcaption>The escalation edge is dashed on purpose — it's a fallback, not a fork with even odds. Everything downstream of chunking is local: embeddings run through Ollama, not a paid API.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ SHEET 03 : RETRIEVAL + EVIDENCE GRADING ============ -->
+  <section class="sheet">
+    <span class="sheet-tag">Sheet 03 — Retrieval &amp; evidence grading, per query</span>
+    <h2>The fork that decides whether the LLM ever sees the evidence</h2>
+    <p class="dek2">This is the mechanism behind most of this session's debugging: grading a passage almost never reaches the careful, LLM-graded judgment — a deterministic shortcut usually resolves it first, on retrieval score alone.</p>
+    <figure>
+      <svg viewBox="0 0 1160 700" role="img" aria-label="A question is analyzed into one or more retrieval queries by strategy. Each query runs hybrid dense and lexical retrieval, then cross-encoder reranking, then evidence grading. Grading first tries a deterministic shortcut based on corroboration or a decisive reranker score with query term overlap; only the ambiguous middle band reaches the LLM judge. All three paths converge into a context builder.">
+        <defs>
+          <marker id="a3" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--flow)"/></marker>
+        </defs>
+
+        <rect x="30" y="20" width="160" height="66" rx="8" fill="#fff" stroke="var(--border-strong)" stroke-width="1.5"/>
+        <text x="110" y="48" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Question</text>
+        <text x="110" y="66" text-anchor="middle" font-size="10" fill="var(--ink-dim)">+ conversation context</text>
+
+        <line x1="190" y1="53" x2="240" y2="53" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a3)"/>
+
+        <rect x="240" y="10" width="220" height="86" rx="8" fill="var(--query-bg)" stroke="var(--query)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="350" y="38" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Query Analyzer</text>
+        <text x="350" y="58" text-anchor="middle" font-size="10" fill="var(--query)">deterministic patterns first,</text>
+        <text x="350" y="74" text-anchor="middle" font-size="10" fill="var(--query)">else an LLM QueryDecision</text>
+
+        <line x1="460" y1="53" x2="510" y2="53" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a3)"/>
+
+        <polygon points="510,25 580,53 510,81 440,53" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="510" y="58" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">strategy</text>
+
+        <g font-size="10" fill="var(--ink-dim)">
+          <text x="596" y="18">direct</text>
+          <text x="596" y="34">decompose (2+ subqueries)</text>
+          <text x="596" y="50">step-back</text>
+          <text x="596" y="66">conversation</text>
+        </g>
+        <line x1="580" y1="53" x2="740" y2="53" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a3)"/>
+
+        <rect x="740" y="18" width="220" height="70" rx="8" fill="#fff" stroke="var(--query)" stroke-width="1.5"/>
+        <text x="850" y="46" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">1–2 retrieval queries</text>
+        <text x="850" y="66" text-anchor="middle" font-size="10" fill="var(--query)">run independently, below</text>
+
+        <line x1="850" y1="88" x2="850" y2="126" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a3)"/>
+        <text x="880" y="112" fill="var(--ink-faint)" font-size="10" font-style="italic">for each query —</text>
+
+        <rect x="590" y="126" width="220" height="70" rx="8" fill="#fff" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <text x="700" y="154" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Hybrid retrieval</text>
+        <text x="700" y="174" text-anchor="middle" font-size="10" fill="var(--retrieval)">dense + lexical, RRF k=60</text>
+        <text x="700" y="188" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">top 20 candidates</text>
+
+        <line x1="810" y1="150" x2="700" y2="126" stroke="var(--flow)" stroke-width="1"/>
+        <line x1="700" y1="196" x2="700" y2="230" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a3)"/>
+
+        <rect x="590" y="230" width="220" height="62" rx="8" fill="#fff" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <text x="700" y="256" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Cross-encoder rerank</text>
+        <text x="700" y="276" text-anchor="middle" font-size="10" fill="var(--retrieval)">ms-marco-MiniLM-L6-v2</text>
+
+        <line x1="700" y1="292" x2="700" y2="326" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#a3)"/>
+
+        <polygon points="700,326 790,378 700,430 610,378" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="700" y="372" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">reranker score</text>
+        <text x="700" y="388" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">decisive?</text>
+
+        <line x1="610" y1="378" x2="360" y2="340" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a3)"/>
+        <text x="480" y="342" fill="var(--ink-faint)" font-size="9.5" class="mono">dense+lexical agree strongly</text>
+        <rect x="60" y="300" width="270" height="82" rx="8" fill="var(--retrieval-bg)" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <text x="195" y="326" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Corroboration shortcut</text>
+        <text x="195" y="344" text-anchor="middle" font-size="10" fill="var(--retrieval)">directly_answers = true, no LLM call</text>
+        <text x="195" y="362" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">most real queries land here</text>
+        <text x="195" y="376" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">in a small corpus</text>
+
+        <line x1="610" y1="398" x2="360" y2="440" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a3)"/>
+        <text x="470" y="442" fill="var(--ink-faint)" font-size="9.5" class="mono">score ≥ 0.85, not corroborated</text>
+        <rect x="60" y="410" width="270" height="96" rx="8" fill="var(--retrieval-bg)" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <text x="195" y="434" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Fast-path, anchor check</text>
+        <text x="195" y="452" text-anchor="middle" font-size="10" fill="var(--retrieval)">accepts if query terms overlap</text>
+        <text x="195" y="466" text-anchor="middle" font-size="10" fill="var(--retrieval)">the passage; else rejects</text>
+        <text x="195" y="484" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">still no LLM call — a correct</text>
+        <text x="195" y="497" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">paraphrase can lose here</text>
+
+        <line x1="790" y1="378" x2="960" y2="378" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a3)"/>
+        <text x="875" y="370" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)" class="mono">ambiguous middle band</text>
+        <rect x="960" y="320" width="180" height="116" rx="8" fill="var(--correction-bg)" stroke="var(--correction)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="1050" y="346" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">LLM evidence judge</text>
+        <text x="1050" y="364" text-anchor="middle" font-size="10" fill="var(--correction)">Ollama qwen3:8b,</text>
+        <text x="1050" y="378" text-anchor="middle" font-size="10" fill="var(--correction)">batched per query</text>
+        <text x="1050" y="398" text-anchor="middle" font-size="9" fill="var(--ink-faint)">credits hedged "why" reasoning</text>
+        <text x="1050" y="411" text-anchor="middle" font-size="9" fill="var(--ink-faint)">and definitional over incidental</text>
+        <text x="1050" y="424" text-anchor="middle" font-size="9" fill="var(--ink-faint)">passages — the two prompt fixes</text>
+
+        <line x1="195" y1="382" x2="195" y2="600" stroke="var(--flow)" stroke-width="1"/>
+        <line x1="195" y1="506" x2="195" y2="600" stroke="var(--flow)" stroke-width="1"/>
+        <line x1="1050" y1="436" x2="1050" y2="600" stroke="var(--flow)" stroke-width="1"/>
+        <line x1="195" y1="600" x2="1050" y2="600" stroke="var(--flow)" stroke-width="1"/>
+        <line x1="620" y1="600" x2="620" y2="630" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a3)"/>
+
+        <rect x="440" y="630" width="360" height="40" rx="8" fill="#fff" stroke="var(--border-strong)" stroke-width="1.5"/>
+        <text x="620" y="655" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Context Builder → Sheet 04</text>
+      </svg>
+      <figcaption>Budget past the context builder: <code>context_parents_per_requirement=3</code> per sub-question, <code>context_max_parents=5</code> / <code>context_max_tokens=3000</code> overall.</figcaption>
+      <div class="note">
+        <span class="tag">Field finding</span>
+        <p>The fast-path box's failure mode is the real one this session found: <code>directly_answers=false</code>, reason <code>"topically relevant but omits distinguishing terms"</code> — logged for a passage that correctly answered a "why" question in different words from the query. Because that decision never reaches the LLM judge on the right, a prompt fix aimed there cannot touch it.</p>
+      </div>
+    </figure>
+  </section>
+
+  <!-- ============ SHEET 04 : GENERATION, VERIFICATION, CONTROL LOOP ============ -->
+  <section class="sheet">
+    <span class="sheet-tag">Sheet 04 — Generation, verification &amp; the correction loop</span>
+    <h2>A state machine that can rewrite, retry, or give up</h2>
+    <p class="dek2">Weak evidence triggers a rewrite-and-retry pass before generation ever runs; an unsupported answer triggers a second generation attempt, then a web search, before the system abstains.</p>
+    <figure>
+      <svg viewBox="0 0 1160 560" role="img" aria-label="Retrieved context is checked for sufficiency. If insufficient, the unanswered need is rewritten and retried once through corrective retrieval before generation. Generation calls an LLM, then verification checks claims deterministically first and falls back to an LLM judge. If verification fails, the graph either regenerates, escalates to a web search, or abstains, depending on attempts remaining and whether web search is allowed. A supported answer proceeds to finalize.">
+        <defs>
+          <marker id="a4" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><polygon points="0,0 8,3.5 0,7" fill="var(--flow)"/></marker>
+        </defs>
+
+        <rect x="30" y="20" width="180" height="56" rx="8" fill="#fff" stroke="var(--border-strong)" stroke-width="1.5"/>
+        <text x="120" y="44" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Context</text>
+        <text x="120" y="62" text-anchor="middle" font-size="10" fill="var(--ink-dim)">from Sheet 03</text>
+
+        <line x1="210" y1="48" x2="256" y2="48" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a4)"/>
+
+        <polygon points="256,20 326,48 256,76 186,48" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="256" y="44" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--ink)">evidence</text>
+        <text x="256" y="57" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--ink)">sufficient?</text>
+
+        <line x1="256" y1="76" x2="256" y2="120" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a4)"/>
+        <text x="272" y="102" fill="var(--ink-faint)" font-size="10" class="mono">no</text>
+        <rect x="146" y="120" width="220" height="58" rx="8" fill="var(--correction-bg)" stroke="var(--correction)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="256" y="144" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Rewrite the need</text>
+        <text x="256" y="162" text-anchor="middle" font-size="10" fill="var(--correction)">Ollama, one attempt</text>
+
+        <line x1="256" y1="178" x2="256" y2="210" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a4)"/>
+        <rect x="146" y="210" width="220" height="58" rx="8" fill="var(--retrieval-bg)" stroke="var(--retrieval)" stroke-width="1.5"/>
+        <text x="256" y="234" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Corrective retrieval</text>
+        <text x="256" y="252" text-anchor="middle" font-size="10" fill="var(--retrieval)">re-run Sheet 03 for it</text>
+
+        <line x1="326" y1="48" x2="490" y2="48" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a4)"/>
+        <text x="350" y="40" fill="var(--ink-faint)" font-size="10" class="mono">yes</text>
+        <path d="M366,240 C430,240 430,110 490,90" fill="none" stroke="var(--flow)" stroke-width="1.25" stroke-dasharray="3 3" marker-end="url(#a4)"/>
+        <text x="378" y="200" fill="var(--ink-faint)" font-size="8.5" transform="rotate(-40 378 200)">still unmet → partial answer, told what not to claim</text>
+
+        <rect x="490" y="14" width="240" height="90" rx="8" fill="var(--generation-bg)" stroke="var(--generation)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="610" y="42" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Generate</text>
+        <text x="610" y="62" text-anchor="middle" font-size="10" fill="var(--generation)">Groq gpt-oss-120b</text>
+        <text x="610" y="78" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">fallback: Ollama qwen3:14b</text>
+        <text x="610" y="94" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)">told every information need to cover</text>
+
+        <line x1="610" y1="104" x2="610" y2="140" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a4)"/>
+
+        <rect x="440" y="140" width="380" height="150" rx="10" fill="#fff" stroke="var(--border-strong)" stroke-width="1.5"/>
+        <text x="630" y="166" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Verify</text>
+
+        <rect x="460" y="180" width="160" height="92" rx="8" fill="var(--verification-bg)" stroke="var(--verification)" stroke-width="1.5"/>
+        <text x="540" y="204" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Deterministic checks</text>
+        <text x="540" y="222" text-anchor="middle" font-size="9.5" fill="var(--verification)">structured · exact ·</text>
+        <text x="540" y="236" text-anchor="middle" font-size="9.5" fill="var(--verification)">lexical · embedding</text>
+        <text x="540" y="254" text-anchor="middle" font-size="9" fill="var(--ink-faint)">tried first, in order</text>
+
+        <line x1="620" y1="226" x2="644" y2="226" stroke="var(--flow)" stroke-width="1.25" marker-end="url(#a4)"/>
+        <text x="632" y="216" fill="var(--ink-faint)" font-size="8.5" text-anchor="middle">miss</text>
+
+        <rect x="644" y="180" width="160" height="92" rx="8" fill="var(--correction-bg)" stroke="var(--correction)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="724" y="204" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">LLM judge</text>
+        <text x="724" y="222" text-anchor="middle" font-size="9.5" fill="var(--correction)">Groq qwen3.8-27b</text>
+        <text x="724" y="236" text-anchor="middle" font-size="9.5" fill="var(--correction)">→ Ollama qwen3:8b</text>
+        <text x="724" y="254" text-anchor="middle" font-size="9" fill="var(--ink-faint)">rate-limit retry, then fallback</text>
+
+        <line x1="630" y1="290" x2="630" y2="326" stroke="var(--ink)" stroke-width="1.5" marker-end="url(#a4)"/>
+
+        <polygon points="630,326 700,368 630,410 560,368" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="630" y="364" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">claims</text>
+        <text x="630" y="378" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">supported?</text>
+
+        <line x1="700" y1="368" x2="860" y2="368" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a4)"/>
+        <text x="770" y="360" text-anchor="middle" font-size="10" fill="var(--ink-faint)" class="mono">yes</text>
+        <rect x="860" y="338" width="220" height="62" rx="8" fill="var(--verification-bg)" stroke="var(--verification)" stroke-width="1.5"/>
+        <text x="970" y="364" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Finalize</text>
+        <text x="970" y="382" text-anchor="middle" font-size="10" fill="var(--verification)">answer, grounded, cited</text>
+
+        <line x1="630" y1="410" x2="630" y2="432" stroke="var(--flow)" stroke-width="1.5"/>
+        <text x="646" y="424" fill="var(--ink-faint)" font-size="10" class="mono">no</text>
+        <line x1="300" y1="432" x2="960" y2="432" stroke="var(--flow)" stroke-width="1.5"/>
+        <line x1="300" y1="432" x2="300" y2="446" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a4)"/>
+        <line x1="630" y1="432" x2="630" y2="446" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a4)"/>
+        <line x1="960" y1="432" x2="960" y2="446" stroke="var(--flow)" stroke-width="1.5" marker-end="url(#a4)"/>
+
+        <rect x="190" y="446" width="220" height="62" rx="8" fill="var(--generation-bg)" stroke="var(--generation)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="300" y="470" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Regenerate</text>
+        <text x="300" y="488" text-anchor="middle" font-size="10" fill="var(--generation)">attempts remain, fed the gap</text>
+        <path d="M240,446 C240,340 400,110 490,68" fill="none" stroke="var(--flow)" stroke-width="1.25" stroke-dasharray="3 3" marker-end="url(#a4)"/>
+
+        <rect x="520" y="446" width="220" height="62" rx="8" fill="var(--generation-bg)" stroke="var(--generation)" stroke-width="1.5" stroke-dasharray="4 2.5"/>
+        <text x="630" y="470" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Search the web</text>
+        <text x="630" y="488" text-anchor="middle" font-size="10" fill="var(--generation)">retries exhausted, web allowed</text>
+
+        <rect x="850" y="446" width="220" height="62" rx="8" fill="#fff" stroke="var(--verification)" stroke-width="1.5"/>
+        <text x="960" y="470" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Abstain</text>
+        <text x="960" y="488" text-anchor="middle" font-size="10" fill="var(--verification)">exhausted, no web allowed</text>
+
+        <line x1="960" y1="446" x2="1000" y2="400" stroke="var(--flow)" stroke-width="1.25" marker-end="url(#a4)"/>
+      </svg>
+      <figcaption>Both LLM stages in this diagram share the same shape as Sheet 03's judge box: a fast provider tried first (Groq), a local one behind it (Ollama) if the first errors or gets rate-limited — with a short wait-and-retry on the same provider first when the rate limit quotes a window under 10 seconds.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <p class="footer-heading">Reference files</p>
+        <ul class="ref-list">
+          <li>src/app/ragv2/graph/nodes.py</li>
+          <li>src/app/ragv2/retrieve/retrieve.py</li>
+          <li>src/app/ragv2/retrieve/retrieval/hybrid.py</li>
+          <li>src/app/ragv2/retrieve/retrieval/reranker.py</li>
+          <li>src/app/ragv2/retrieve/retrieval/grader.py</li>
+          <li>src/app/ragv2/retrieve/retrieval/context_builder.py</li>
+          <li>src/app/ragv2/generation/answer.py</li>
+          <li>src/app/ragv2/generation/verifier.py</li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-heading">Changelog</p>
+        <ul class="changelog">
+          <li><b>Redrawn</b> — dropped the dark blueprint theme for a lighter, more spacious layout with color-coded pipeline phases, and added the complete end-to-end pipeline diagram.</li>
+          <li><b>Earlier</b> — Sheet 03 redrawn to show the grader's deterministic shortcut resolving before any LLM call, not after.</li>
+          <li><b>Earlier</b> — Sheet 04's three-way branch corrected: a stray direct line between two sibling outcomes was replaced with one spine to three outcomes.</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+</div>

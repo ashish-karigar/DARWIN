@@ -56,12 +56,50 @@ def audio_level_message(level: float) -> dict[str, object]:
     }
 
 
+def voice_playback_message(active: bool) -> dict[str, object]:
+    return {
+        "protocolVersion": PROTOCOL_VERSION,
+        "messageId": str(uuid4()),
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "type": "assistant.voice-playback",
+        "active": active,
+    }
+
+
+def skill_activity_message(
+    skill: str, phase: str, request_id: str
+) -> dict[str, object]:
+    return {
+        "protocolVersion": PROTOCOL_VERSION,
+        "messageId": str(uuid4()),
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "type": "assistant.activity",
+        "requestId": request_id,
+        "skill": skill,
+        "phase": phase,
+    }
+
+
 def run_state_service(token: str) -> None:
     def publish(state: AssistantStateName) -> None:
         print(json.dumps(state_message(state), separators=(",", ":")), flush=True)
 
     def publish_level(level: float) -> None:
         print(json.dumps(audio_level_message(level), separators=(",", ":")), flush=True)
+
+    def publish_voice_playback(active: bool) -> None:
+        print(
+            json.dumps(voice_playback_message(active), separators=(",", ":")),
+            flush=True,
+        )
+
+    def publish_skill(skill: str, phase: str, request_id: str) -> None:
+        print(
+            json.dumps(
+                skill_activity_message(skill, phase, request_id), separators=(",", ":")
+            ),
+            flush=True,
+        )
 
     socket_path = activity_socket_path()
     socket_path.unlink(missing_ok=True)
@@ -82,6 +120,25 @@ def run_state_service(token: str) -> None:
                             and isinstance(payload.get("level"), (int, float))
                         ):
                             publish_level(float(payload["level"]))
+                            continue
+                        if (
+                            isinstance(payload, dict)
+                            and payload.get("type") == "voice.playback"
+                            and isinstance(payload.get("active"), bool)
+                        ):
+                            publish_voice_playback(payload["active"])
+                            continue
+                        if (
+                            isinstance(payload, dict)
+                            and payload.get("type") == "assistant.activity"
+                            and isinstance(payload.get("skill"), str)
+                            and 0 < len(payload["skill"]) <= 80
+                            and payload.get("phase") in {"started", "completed", "failed"}
+                            and isinstance(payload.get("requestId"), str)
+                        ):
+                            publish_skill(
+                                payload["skill"], payload["phase"], payload["requestId"]
+                            )
                             continue
                         if state in {
                             "idle",

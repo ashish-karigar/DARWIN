@@ -83,6 +83,11 @@ class FakeLexicalIndex:
         return self.hits
 
 
+class FailingIndex:
+    def search(self, *args, **kwargs):
+        raise RuntimeError("index unavailable")
+
+
 def test_retrieves_and_fuses_both_indexes():
     vector = FakeVectorIndex(
         hits=(
@@ -165,3 +170,16 @@ def test_rejects_invalid_queries():
 
     with pytest.raises(ValueError, match="must be positive"):
         retriever.search("retrieval", limit=0)
+
+
+def test_uses_healthy_index_when_other_index_fails():
+    lexical_hit = create_hit("lexical", 1, "lexical")
+    retriever = HybridRetriever(
+        vector_index=FailingIndex(),
+        lexical_index=FakeLexicalIndex((lexical_hit,)),
+    )
+
+    hits = retriever.search("exact identifier")
+
+    assert len(hits) == 1
+    assert hits[0].chunk.chunk_id == "lexical"

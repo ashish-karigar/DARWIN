@@ -64,17 +64,30 @@ describe('SettingsApp', () => {
     fireEvent.change(screen.getByLabelText('Fish Audio API key'), {
       target: { value: 'fish-secret' }
     })
+    fireEvent.change(screen.getByLabelText('Fish Audio voice ID'), {
+      target: { value: 'voice-id' }
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
     await waitFor(() =>
       expect(credentialStore).toHaveBeenCalledWith('fishAudio.apiKey', 'fish-secret')
     )
-    expect(screen.getByText('Service settings saved.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Saved. The assistant service is applying these settings.')
+    ).toBeInTheDocument()
   })
 
   it('can remove an existing credential', async () => {
     useSettingsStore.setState({
       onboardingComplete: true,
-      serviceState: { groq: true, ollama: false, fishAudio: false, spotify: false }
+      serviceState: {
+        groq: true,
+        ollama: false,
+        fishAudio: false,
+        spotify: false,
+        langsmith: false,
+        huggingFace: false,
+        llamaCloud: false
+      }
     })
     credentialHas.mockImplementation(async (id: string) => id === 'groq.apiKey')
     render(<SettingsApp />)
@@ -82,5 +95,26 @@ describe('SettingsApp', () => {
     const disconnect = await screen.findByRole('button', { name: 'Disconnect' })
     fireEvent.click(disconnect)
     await waitFor(() => expect(credentialRemove).toHaveBeenCalledWith('groq.apiKey'))
+  })
+
+  it('exposes every supported runtime service setting', () => {
+    useSettingsStore.setState({ onboardingComplete: true })
+    render(<SettingsApp />)
+    fireEvent.click(screen.getByRole('button', { name: 'Services' }))
+
+    for (const name of [
+      'Groq API key',
+      'Fish Audio API key',
+      'Fish Audio voice ID',
+      'Spotify client ID',
+      'Spotify redirect URI',
+      'Spotify device name',
+      'LangSmith API key',
+      'LangSmith project',
+      'Hugging Face token',
+      'LlamaCloud API key'
+    ]) {
+      expect(screen.getByLabelText(name)).toBeInTheDocument()
+    }
   })
 })

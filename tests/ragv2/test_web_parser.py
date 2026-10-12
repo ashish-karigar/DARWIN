@@ -3,6 +3,7 @@ import pytest
 
 from app.ragv2.contracts import SourceType
 from app.ragv2.ingest.parsers.web_parser import WebParser
+from app.ragv2.ingest.security import URLSafetyPolicy
 
 
 HTML = """
@@ -45,6 +46,11 @@ def create_client(
     )
 
 
+PUBLIC_URL_POLICY = URLSafetyPolicy(
+    resolver=lambda hostname, port: ("93.184.216.34",)
+)
+
+
 def test_supports_web_urls():
     parser = WebParser()
 
@@ -55,7 +61,10 @@ def test_supports_web_urls():
 
 def test_parses_web_page():
     with create_client() as client:
-        document = WebParser(http_client=client).parse(
+        document = WebParser(
+            http_client=client,
+            url_policy=PUBLIC_URL_POLICY,
+        ).parse(
             "https://example.com/document"
         )
 
@@ -73,7 +82,10 @@ def test_parses_web_page():
 
 def test_web_error_is_reported():
     with create_client(status_code=404) as client:
-        parser = WebParser(http_client=client)
+        parser = WebParser(
+            http_client=client,
+            url_policy=PUBLIC_URL_POLICY,
+        )
 
         with pytest.raises(httpx.HTTPStatusError):
             parser.parse("https://example.com/missing")

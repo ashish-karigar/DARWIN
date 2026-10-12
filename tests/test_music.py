@@ -19,9 +19,12 @@ def test_stop_pauses_apple_music(run):
 
     result = apple_music.control("stop")
 
-    command = run.call_args.args[0]
+    commands = [call.args[0] for call in run.call_args_list]
 
-    assert 'tell application "Music" to pause' in command
+    assert any(
+        'tell application "Music" to pause' in command
+        for command in commands
+    )
     assert result == "Apple Music playback paused."
 
 

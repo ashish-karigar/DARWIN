@@ -18,6 +18,20 @@ This plan focuses on the **document intelligence, retrieval, and grounded-genera
 
 > Important: the result of this plan will be a production-quality RAG core, but it should not be described as fully production-ready until the deferred reliability, security, evaluation, and operations work is completed.
 
+## Core implementation status
+
+The core build sequence in this document is complete in `src/app/ragv2`.
+
+- Heterogeneous sources are normalized through native text/Markdown, web, image/OCR, LiteParse, Docling, and optional LlamaParse adapters.
+- Structure-aware prose, table, image, and code chunkers preserve parent links and provenance.
+- Chroma dense retrieval, SQLite FTS5 lexical retrieval, parent-document expansion, and deterministic structured-table queries are available.
+- Direct, conversational, decomposed, and step-back questions feed hybrid retrieval, reciprocal-rank fusion, local cross-encoder reranking, and evidence grading.
+- A bounded LangGraph workflow performs targeted correction, permission-gated web retrieval, partial answering, abstention, grounded generation, and claim verification.
+- `RagService` is the public application boundary, and the knowledge agent now calls this verified RAG v2 path.
+- The heterogeneous local benchmark covers PDF, Markdown, OCR image, and structured-table evidence. Its latest candidate-retrieval result is Hit@1 100%, Hit@5 100%, and MRR 1.0 across nine answerable cases. The full LLM-backed benchmark remains environment/provider dependent and must be run with explicit authorization because retrieved excerpts are sent to the configured model provider.
+
+The default web-search provider is intentionally disabled. The graph can use an injected provider only when the caller also sets `allow_web_search=True`.
+
 ## Target architecture
 
 ```text
@@ -528,7 +542,7 @@ These are still required before deploying DARWIN as a dependable multi-user prod
 
 ## Immediate next step
 
-Begin with **Phase 1 only**: define the normalized `Document` and `Section` contracts, then adapt the existing text ingestion to produce those objects without changing current retrieval behavior.
+Resume the separate **fully-production-ready-system** plan: operational hardening, larger adversarial evaluation, observability, access control, versioning, recovery, and deployment work. Keep the completed RAG core stable while those capabilities are added around it.
 
 ## References
 

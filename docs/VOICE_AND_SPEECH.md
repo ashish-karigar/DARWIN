@@ -110,6 +110,40 @@ Apple's minimum level while listening, suspends the native engine during its
 own TTS playback, and resumes it for follow-up capture. This prevents the
 always-open voice-processing engine from making DARWIN's voice sound quiet.
 
+Embedded media apps in the DARWIN desktop UI, including YouTube, follow a
+dedicated voice-playback signal rather than the general assistant state. Their
+HTML audio and video elements are lowered only after TTS audio reaches the
+output stream, held at that level while DARWIN is audibly speaking, and restored
+to their exact prior volume afterward. Listening, transcribing, and thinking do
+not duck media. The default ratio is `0.25` and can be changed with:
+
+```text
+DARWIN_UI_MEDIA_DUCK_RATIO=0.25
+```
+
+This adjustment occurs inside the managed web view, so it does not reduce
+DARWIN's TTS or the macOS master output volume.
+
+### Low-latency STT and TTS
+
+The desktop and terminal voice paths share the same latency-oriented pipeline:
+
+- Fish Audio uses one reusable SDK client and one PCM stream per utterance. The
+  free model uses HTTP streaming; accounts with API credit can select the
+  WebSocket production path, with pre-audio HTTP fallback.
+- Remote partial acknowledgements are disabled by default so they cannot
+  serialize ahead of the final response. They remain visible as UI text events.
+- Faster-Whisper receives the captured PCM array directly, uses an
+  environment-controlled beam size, and skips its second VAD pass by default
+  because DARWIN already endpointed the utterance with Silero VAD.
+- Whisper is warmed when continuous conversation starts. A single speculative
+  final transcription begins during endpoint silence and is invalidated if the
+  user resumes speaking; DARWIN never launches competing rolling Whisper jobs.
+
+Voice latency records distinguish Fish network-first-chunk time from
+output-first-audio time, making service latency and local playback startup
+independently measurable.
+
 ### Speech endpointing
 
 `src/app/voice/speech_activity.py` wraps Silero VAD. It is used by
@@ -199,8 +233,9 @@ preferred architecture.
 ### Text-to-speech
 
 `src/app/voice/text_to_speech.py` uses the Fish Audio API and streams PCM audio
-to `sounddevice`. It starts the first sentence immediately and generates later
-sentences concurrently. Local `pyttsx3` is the fallback.
+to `sounddevice`. It uses one synthesis stream for the complete utterance to
+avoid repeated connection and model startup costs. Local `pyttsx3` is the
+fallback.
 
 Relevant settings:
 
@@ -209,6 +244,10 @@ FISH_API_KEY
 FISH_TTS_MODEL
 FISH_VOICE_ID
 FISH_TTS_SPEED
+FISH_TTS_TRANSPORT
+FISH_TTS_LATENCY
+FISH_TTS_CHUNK_LENGTH
+DARWIN_SPEAK_PARTIAL_RESPONSES
 ```
 
 Speed `1.25` sounded best in user testing. The speech cleaner removes Markdown,

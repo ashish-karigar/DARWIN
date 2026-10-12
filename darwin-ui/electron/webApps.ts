@@ -1,4 +1,5 @@
-import { BrowserWindow, WebContentsView, ipcMain, shell } from 'electron'
+import { BrowserWindow, WebContentsView, ipcMain, session, shell } from 'electron'
+import { z } from 'zod'
 import {
   isAllowedWebUrl,
   validateWebAppRequest,
@@ -27,18 +28,166 @@ interface HostedView {
   view: WebContentsView
   request: WebAppCreateRequest
   bounds: Electron.Rectangle
+  mediaTimer?: ReturnType<typeof setInterval>
+  lastMediaSignature?: string
 }
+
+const hostedMediaSchema = z.object({
+  title: z.string().trim().min(1).max(500),
+  artist: z.string().max(500),
+  album: z.string().max(500),
+  artworkUrl: z.url().nullable(),
+  durationMs: z.number().int().nonnegative().max(86_400_000),
+  progressMs: z.number().int().nonnegative().max(86_400_000),
+  isPlaying: z.boolean()
+})
+
+const mediaControlSchema = z.enum(['pause', 'resume', 'next', 'previous'])
+
+const YOUTUBE_ORIGIN = 'https://www.youtube.com'
+const YOUTUBE_PARTITION = 'persist:darwin.youtube'
+
+export const optimizedYouTubeUserAgent = (userAgent: string) =>
+  userAgent.replace(/\sElectron\/[\d.]+/i, '')
+
+export const youtubeMediaSnapshotScript = `(() => {
+  const video = document.querySelector('video');
+  if (!(video instanceof HTMLVideoElement) || !video.currentSrc || !Number.isFinite(video.duration) || video.duration <= 0) return null;
+  const player = document.querySelector('#movie_player');
+  const data = typeof player?.getVideoData === 'function' ? player.getVideoData() : null;
+  const title = String(data?.title || document.querySelector('h1.ytd-watch-metadata yt-formatted-string')?.textContent || document.title.replace(/\\s+-\\s+YouTube$/, '')).trim();
+  if (!title) return null;
+  const artist = String(data?.author || document.querySelector('#owner #channel-name a')?.textContent || '').trim();
+  const videoId = String(data?.video_id || new URL(location.href).searchParams.get('v') || '').trim();
+  const metaArtwork = document.querySelector('meta[property="og:image"]')?.getAttribute('content');
+  const artworkUrl = videoId ? 'https://i.ytimg.com/vi/' + encodeURIComponent(videoId) + '/hqdefault.jpg' : (metaArtwork ? new URL(metaArtwork, location.href).href : null);
+  return {
+    title,
+    artist,
+    album: 'YouTube',
+    artworkUrl,
+    durationMs: Math.max(0, Math.round(video.duration * 1000)),
+    progressMs: Math.max(0, Math.round(video.currentTime * 1000)),
+    isPlaying: !video.paused && !video.ended
+  };
+})()`
+
+const youtubeMediaControlScript = (action: z.infer<typeof mediaControlSchema>) => `(() => {
+  const video = document.querySelector('video');
+  if (!(video instanceof HTMLVideoElement)) return false;
+  if (${JSON.stringify(action)} === 'pause') video.pause();
+  if (${JSON.stringify(action)} === 'resume') void video.play();
+  if (${JSON.stringify(action)} === 'next') document.querySelector('.ytp-next-button')?.click();
+  if (${JSON.stringify(action)} === 'previous') {
+    const previous = document.querySelector('.ytp-prev-button');
+    if (previous instanceof HTMLElement) previous.click();
+    else video.currentTime = 0;
+  }
+  return true;
+})()`
+
+const configuredMediaDuckRatio = () => {
+  const value = Number(process.env.DARWIN_UI_MEDIA_DUCK_RATIO ?? '0.25')
+  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0.25
+}
+
+export const mediaDuckingScript = (ducked: boolean, ratio: number) => `(() => {
+  const controllerKey = '__darwinMediaDucking';
+  const root = window;
+  let controller = root[controllerKey];
+  if (!controller) {
+    controller = root[controllerKey] = {
+      active: false,
+      ratio: 1,
+      originalVolumes: new Map(),
+      listeners: new Map(),
+      observer: null
+    };
+  }
+  const apply = media => {
+    if (!(media instanceof HTMLMediaElement) || !controller.active) return;
+    if (!controller.originalVolumes.has(media)) controller.originalVolumes.set(media, media.volume);
+    const target = Math.max(0, Math.min(1, controller.originalVolumes.get(media) * controller.ratio));
+    if (Math.abs(media.volume - target) > 0.001) media.volume = target;
+    if (!controller.listeners.has(media)) {
+      const holdVolume = () => queueMicrotask(() => apply(media));
+      controller.listeners.set(media, holdVolume);
+      media.addEventListener('volumechange', holdVolume);
+    }
+  };
+  const scan = () => document.querySelectorAll('audio,video').forEach(apply);
+  if (${JSON.stringify(ducked)}) {
+    controller.active = true;
+    controller.ratio = ${JSON.stringify(ratio)};
+    scan();
+    if (!controller.observer) {
+      controller.observer = new MutationObserver(scan);
+      controller.observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
+  } else {
+    controller.active = false;
+    controller.observer?.disconnect();
+    controller.observer = null;
+    for (const [media, listener] of controller.listeners) {
+      media.removeEventListener('volumechange', listener);
+    }
+    controller.listeners.clear();
+    for (const [media, originalVolume] of controller.originalVolumes) {
+      if (media.isConnected) media.volume = Math.max(0, Math.min(1, originalVolume));
+    }
+    controller.originalVolumes.clear();
+  }
+})()`
 
 export class WebAppManager {
   readonly #window: BrowserWindow
   readonly #views = new Map<string, HostedView>()
+  #voicePlaybackActive = false
 
   constructor(window: BrowserWindow) {
     this.#window = window
+    const youtubeSession = session.fromPartition(YOUTUBE_PARTITION)
+    youtubeSession.setUserAgent(optimizedYouTubeUserAgent(youtubeSession.getUserAgent()))
+    youtubeSession.preconnect({ url: YOUTUBE_ORIGIN, numSockets: 6 })
+    void youtubeSession
+      .fetch(`${YOUTUBE_ORIGIN}/`, { method: 'GET' })
+      .then((response) => response.arrayBuffer())
+      .catch(() => undefined)
   }
 
   #emit(instanceId: string, status: WebAppStatus, detail?: string) {
     this.#window.webContents.send('web-app:event', { instanceId, status, detail })
+  }
+
+  #emitMedia(instanceId: string, media: z.infer<typeof hostedMediaSchema> | null) {
+    if (this.#window.isDestroyed() || this.#window.webContents.isDestroyed()) return
+    this.#window.webContents.send('web-app:media', {
+      instanceId,
+      active: media !== null,
+      ...(media ? { media: { provider: 'youtube' as const, ...media } } : {})
+    })
+  }
+
+  #startMediaTracking(hosted: HostedView) {
+    if (hosted.request.appId !== 'darwin.youtube' || hosted.mediaTimer) return
+    const sample = async () => {
+      const contents = hosted.view.webContents
+      if (contents.isDestroyed() || contents.isLoadingMainFrame()) return
+      try {
+        const parsed = hostedMediaSchema.safeParse(
+          await contents.executeJavaScript(youtubeMediaSnapshotScript)
+        )
+        const media = parsed.success ? parsed.data : null
+        const signature = media ? JSON.stringify(media) : 'inactive'
+        if (signature === hosted.lastMediaSignature) return
+        hosted.lastMediaSignature = signature
+        this.#emitMedia(hosted.request.instanceId, media)
+      } catch {
+        // Navigation can invalidate JavaScript execution between polling ticks.
+      }
+    }
+    void sample()
+    hosted.mediaTimer = setInterval(() => void sample(), 1_000)
   }
 
   async create(value: unknown) {
@@ -50,18 +199,21 @@ export class WebAppManager {
         contextIsolation: true,
         sandbox: true,
         partition: `persist:${request.session}`,
-        autoplayPolicy: 'no-user-gesture-required'
+        autoplayPolicy: 'no-user-gesture-required',
+        backgroundThrottling: false,
+        spellcheck: false
       }
     })
     view.setBounds(request.bounds)
     view.setBackgroundColor('#000000')
     view.setVisible(false)
     this.#window.contentView.addChildView(view)
-    this.#views.set(request.instanceId, {
+    const hosted: HostedView = {
       view,
       request,
       bounds: request.bounds
-    })
+    }
+    this.#views.set(request.instanceId, hosted)
     const contents = view.webContents
     const allowPermission = (permission: string) =>
       permission === 'fullscreen' && request.permissions.includes('media.fullscreen')
@@ -107,6 +259,8 @@ export class WebAppManager {
           });
         }
       })()`)
+      if (this.#voicePlaybackActive) this.#setMediaDucked(hosted, true)
+      this.#startMediaTracking(hosted)
     }
     contents.on('dom-ready', emitReady)
     contents.on('did-finish-load', emitReady)
@@ -259,6 +413,8 @@ export class WebAppManager {
     const instanceId = webAppIdSchema.parse(value)
     const hosted = this.#views.get(instanceId)
     if (!hosted) return { ok: true }
+    if (hosted.mediaTimer) clearInterval(hosted.mediaTimer)
+    this.#emitMedia(instanceId, null)
     this.#window.contentView.removeChildView(hosted.view)
     hosted.view.webContents.close()
     this.#views.delete(instanceId)
@@ -277,6 +433,39 @@ export class WebAppManager {
     return { ok: true }
   }
 
+  async controlMedia(value: unknown) {
+    const action = mediaControlSchema.parse(value)
+    const hosted = [...this.#views.values()].find(
+      (candidate) => candidate.request.appId === 'darwin.youtube'
+    )
+    if (!hosted || hosted.view.webContents.isDestroyed()) return { ok: false }
+    try {
+      const handled = await hosted.view.webContents.executeJavaScript(
+        youtubeMediaControlScript(action)
+      )
+      return { ok: Boolean(handled) }
+    } catch {
+      return { ok: false }
+    }
+  }
+
+  setVoicePlaybackActive(active: boolean) {
+    if (this.#voicePlaybackActive === active) return
+    this.#voicePlaybackActive = active
+    for (const hosted of this.#views.values()) {
+      this.#setMediaDucked(hosted, active)
+    }
+  }
+
+  #setMediaDucked(hosted: HostedView, ducked: boolean) {
+    if (!hosted.request.permissions.includes('media.playback')) return
+    const contents = hosted.view.webContents
+    if (contents.isDestroyed()) return
+    void contents
+      .executeJavaScript(mediaDuckingScript(ducked, configuredMediaDuckRatio()))
+      .catch(() => undefined)
+  }
+
   destroyAll() {
     for (const id of [...this.#views.keys()]) this.destroy(id)
   }
@@ -284,7 +473,7 @@ export class WebAppManager {
 
 export const registerWebAppHandlers = (window: BrowserWindow) => {
   const manager = new WebAppManager(window)
-  ;['web-app:create', 'web-app:update', 'web-app:destroy', 'web-app:navigate'].forEach(
+  ;['web-app:create', 'web-app:update', 'web-app:destroy', 'web-app:navigate', 'web-app:media-control'].forEach(
     (channel) => ipcMain.removeHandler(channel)
   )
   ipcMain.handle('web-app:create', async (_event, value) => {
@@ -315,5 +504,13 @@ export const registerWebAppHandlers = (window: BrowserWindow) => {
       return { ok: false }
     }
   })
+  ipcMain.handle('web-app:media-control', async (_event, value) => {
+    try {
+      return await manager.controlMedia(value)
+    } catch {
+      return { ok: false }
+    }
+  })
   window.on('closed', () => manager.destroyAll())
+  return manager
 }

@@ -10,6 +10,9 @@ export interface ServiceState {
   ollama: boolean
   fishAudio: boolean
   spotify: boolean
+  langsmith: boolean
+  huggingFace: boolean
+  llamaCloud: boolean
 }
 
 export interface DarwinPreferences {
@@ -39,7 +42,10 @@ export const preferencesSchema = z.object({
     groq: z.boolean(),
     ollama: z.boolean(),
     fishAudio: z.boolean(),
-    spotify: z.boolean()
+    spotify: z.boolean(),
+    langsmith: z.boolean().default(false),
+    huggingFace: z.boolean().default(false),
+    llamaCloud: z.boolean().default(false)
   })
 })
 
@@ -67,7 +73,15 @@ export const defaultPreferences: DarwinPreferences = {
   primaryInput: 'mouse',
   voiceEnabled: true,
   rememberWindowPositions: true,
-  serviceState: { groq: false, ollama: false, fishAudio: false, spotify: false }
+  serviceState: {
+    groq: false,
+    ollama: false,
+    fishAudio: false,
+    spotify: false,
+    langsmith: false,
+    huggingFace: false,
+    llamaCloud: false
+  }
 }
 
 export const useSettingsStore = create<SettingsState>()(

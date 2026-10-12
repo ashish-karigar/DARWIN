@@ -44,3 +44,34 @@ def publish_ui_audio_level(level: float) -> bool:
         return True
     except OSError:
         return False
+
+
+def publish_ui_voice_playback(active: bool) -> bool:
+    """Report actual TTS playback independently from listening/thinking state."""
+    message = json.dumps(
+        {"type": "voice.playback", "active": active}, separators=(",", ":")
+    ).encode()
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as client:
+            client.sendto(message, str(activity_socket_path()))
+        return True
+    except OSError:
+        return False
+
+
+def publish_ui_skill(skill: str, phase: str, request_id: str) -> bool:
+    message = json.dumps(
+        {
+            "type": "assistant.activity",
+            "skill": skill[:80],
+            "phase": phase,
+            "requestId": request_id,
+        },
+        separators=(",", ":"),
+    ).encode()
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as client:
+            client.sendto(message, str(activity_socket_path()))
+        return True
+    except OSError:
+        return False

@@ -1,10 +1,10 @@
 import type { AppManifest } from '../../shared/contracts'
 import { appManifestSchema } from '../../shared/contracts'
-import assistantManifest from '../../apps/assistant/manifest.json'
 import settingsManifest from '../../apps/settings/manifest.json'
 import youtubeManifest from '../../apps/youtube/manifest.json'
 import remindersManifest from '../../apps/reminders/manifest.json'
 import cameraManifest from '../../apps/camera/manifest.json'
+import calendarManifest from '../../apps/calendar/manifest.json'
 
 export interface AppRegistryIssue {
   index: number
@@ -97,7 +97,7 @@ export class AppRegistry {
 }
 
 const bundledManifests: readonly unknown[] = [
-  assistantManifest,
+  calendarManifest,
   settingsManifest,
   remindersManifest,
   cameraManifest,

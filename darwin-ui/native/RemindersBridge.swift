@@ -26,11 +26,21 @@ struct ReminderDTO: Encodable {
     let recurrence: String?
 }
 
+struct ReminderListDTO: Encodable {
+    let id: String
+    let title: String
+}
+
 @main
 struct RemindersBridge {
     static let store = EKEventStore()
     static let encoder = JSONEncoder()
-    static let iso = ISO8601DateFormatter()
+    static let iso: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+    static let isoWithoutFractions = ISO8601DateFormatter()
     static var responsePath: String?
 
     static func main() async {
@@ -63,13 +73,18 @@ struct RemindersBridge {
         case "list":
             guard hasAccess() else { respond(["ok": false, "error": "access_denied", "status": authorizationStatus()]); return }
             let reminders = await fetchReminders()
-            respondEncodable(["ok": true], reminders: reminders)
+            respondEncodable(["ok": true], reminders: reminders, lists: fetchLists())
+        case "ensureList":
+            guard hasAccess() else { respond(["ok": false, "error": "access_denied"]); return }
+            ensureList(named: request.title ?? "DARWIN")
         case "create":
             guard hasAccess(), let title = request.title else { respond(["ok": false, "error": "access_denied"]); return }
             let reminder = EKReminder(eventStore: store)
             reminder.title = title
             reminder.calendar = request.calendarId.flatMap { store.calendar(withIdentifier: $0) } ?? store.defaultCalendarForNewReminders()
-            if let value = request.dueDate, let date = iso.date(from: value) {
+            reminder.notes = request.notes
+            reminder.priority = request.priority ?? 0
+            if let value = request.dueDate, let date = parseDate(value) {
                 reminder.dueDateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
             }
             do { try store.save(reminder, commit: true); respond(["ok": true, "id": reminder.calendarItemIdentifier]) }
@@ -87,7 +102,7 @@ struct RemindersBridge {
             if let notes = request.notes { reminder.notes = notes }
             if let priority = request.priority { reminder.priority = priority }
             if let calendarId = request.calendarId, let calendar = store.calendar(withIdentifier: calendarId) { reminder.calendar = calendar }
-            if let value = request.dueDate { reminder.dueDateComponents = iso.date(from: value).map { Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: $0) } }
+            if let value = request.dueDate { reminder.dueDateComponents = parseDate(value).map { Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: $0) } }
             if let recurrence = request.recurrence {
                 let frequency: EKRecurrenceFrequency? = recurrence == "daily" ? .daily : recurrence == "weekly" ? .weekly : recurrence == "monthly" ? .monthly : recurrence == "yearly" ? .yearly : nil
                 reminder.recurrenceRules = frequency.map { [EKRecurrenceRule(recurrenceWith: $0, interval: 1, end: nil)] }
@@ -117,6 +132,36 @@ struct RemindersBridge {
 
     static func hasAccess() -> Bool { EKEventStore.authorizationStatus(for: .reminder) == .fullAccess }
 
+    static func parseDate(_ value: String) -> Date? {
+        iso.date(from: value) ?? isoWithoutFractions.date(from: value)
+    }
+
+    static func fetchLists() -> [ReminderListDTO] {
+        store.calendars(for: .reminder).map {
+            ReminderListDTO(id: $0.calendarIdentifier, title: $0.title)
+        }
+    }
+
+    static func ensureList(named title: String) {
+        if let existing = store.calendars(for: .reminder).first(where: { $0.title == title }) {
+            respond(["ok": true, "id": existing.calendarIdentifier, "title": existing.title])
+            return
+        }
+        guard let source = store.defaultCalendarForNewReminders()?.source ?? store.sources.first else {
+            respond(["ok": false, "error": "reminder_source_unavailable"])
+            return
+        }
+        let calendar = EKCalendar(for: .reminder, eventStore: store)
+        calendar.title = title
+        calendar.source = source
+        do {
+            try store.saveCalendar(calendar, commit: true)
+            respond(["ok": true, "id": calendar.calendarIdentifier, "title": calendar.title])
+        } catch {
+            respond(["ok": false, "error": "list_creation_failed"])
+        }
+    }
+
     static func fetchReminders() async -> [ReminderDTO] {
         let values: [EKReminder] = await withCheckedContinuation { continuation in
             store.fetchReminders(matching: store.predicateForReminders(in: nil)) { continuation.resume(returning: $0 ?? []) }
@@ -133,9 +178,9 @@ struct RemindersBridge {
         writeResponse(data)
     }
 
-    static func respondEncodable(_ metadata: [String: Bool], reminders: [ReminderDTO]) {
-        struct Response: Encodable { let ok: Bool; let reminders: [ReminderDTO] }
-        guard let data = try? encoder.encode(Response(ok: metadata["ok"] ?? false, reminders: reminders)) else { exit(1) }
+    static func respondEncodable(_ metadata: [String: Bool], reminders: [ReminderDTO], lists: [ReminderListDTO]) {
+        struct Response: Encodable { let ok: Bool; let reminders: [ReminderDTO]; let lists: [ReminderListDTO] }
+        guard let data = try? encoder.encode(Response(ok: metadata["ok"] ?? false, reminders: reminders, lists: lists)) else { exit(1) }
         writeResponse(data)
     }
 

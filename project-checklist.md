@@ -291,6 +291,61 @@ YouTube-specific work while the rest of the shell progresses.
 
 **Done when:** Changes flow both ways between DARWIN and Apple Reminders with explicit user permission.
 
+### UI-027 — Add local Camera object detection
+
+**Depends on:** UI-021
+
+- [x] Add an optional OpenCV and Ultralytics vision dependency group.
+- [x] Run a persistent, lazily loaded Python YOLO worker owned by Electron.
+- [x] Validate and size-limit every frame and detection crossing the IPC boundary.
+- [x] Downscale sampled frames and keep at most one inference request in flight.
+- [x] Draw mirrored, crop-corrected bounding boxes and confidence labels over Camera.
+- [x] Add minimal detection on/off, loading, count, retry, and error states.
+- [x] Stop the worker when DARWIN closes and stop inference when Camera is minimized.
+- [x] Add focused worker tests and pass the complete UI validation suite.
+- [ ] Visually verify live detections in the DARWIN Camera app.
+
+**Done when:** Camera can enable responsive local object detection without retaining
+frames, growing a stale-frame queue, or consuming inference resources while disabled.
+
+### UI-028 — Add the Outlook-first Calendar app and Today widget
+
+**Depends on:** UI-021
+
+- [x] Use macOS EventKit as the provider-neutral calendar source of truth.
+- [x] Discover Exchange/Outlook, iCloud, and Google calendars already connected to macOS.
+- [x] Build a signed native bridge with explicit full-calendar permission.
+- [x] Add validated Electron IPC for date-range reads and event create, update, and delete.
+- [x] Add month, week, day, and agenda views in a minimal DARWIN Calendar app.
+- [x] Add a bottom-left Today widget with current events and a persisted hidden state.
+- [x] Leave a compact Calendar icon in the bottom-left corner while the widget is hidden.
+- [x] Keep source identity and source colors visible without copying calendar data into a second database.
+- [x] Add bridge/store tests and pass the complete UI validation suite.
+- [ ] Confirm the initial permission prompt and live Outlook two-way sync on the target Mac.
+- [ ] Visually approve and refine the app and widget proportions.
+
+**Done when:** An Outlook event created, edited, or deleted in either DARWIN or Outlook
+appears on both sides, the Today widget reliably reflects the current day, and permission
+denial/recovery works without requiring Microsoft Entra administrator access.
+
+### UI-028A — Add reviewed tasks from Apple Mail
+
+**Depends on:** UI-026
+
+- [x] Add a signed, read-only Apple Mail automation bridge.
+- [x] Support persisted sender and mailbox rules, beginning with `yyang1@pennstatehealth.psu.edu` in `INBOX`.
+- [x] Run bounded task extraction through local Ollama using `qwen3:14b`.
+- [x] Treat email as untrusted content and keep raw bodies out of the renderer and persistent task queue.
+- [x] Add a review queue; never create a reminder from email without explicit approval.
+- [x] Ensure approved and manual tasks default to the `DARWIN` Apple Reminders list.
+- [x] Keep Apple Mail read-only with no reply, mutation, or writeback path.
+- [x] Remember rules, reviewed candidates, and processed message identifiers locally.
+- [x] Add extraction tests and pass the complete UI validation suite.
+- [ ] Confirm the Apple Mail Automation permission prompt and a live end-to-end approval on the target Mac.
+
+**Done when:** Matching Apple Mail messages can be classified locally, reviewed in DARWIN,
+and explicitly approved into the `DARWIN` Apple Reminders list without email write access.
+
 ---
 
 ## Phase 3 — Python service and assistant UI
@@ -323,26 +378,26 @@ desktop boundary and the neural core renders each state without a separate app.
 
 **Depends on:** UI-001, UI-003
 
-- [ ] Separate terminal input/output concerns from assistant orchestration in `main.py`.
-- [ ] Expose a reusable method for submitting messages to the single OS-level DARWIN session.
-- [ ] Preserve the existing action context and safety policy.
-- [ ] Make thinking, skill, response, and error states observable without relying on `print`.
-- [ ] Route runtime activity events to the desktop neural core.
-- [ ] Keep terminal text mode working.
-- [ ] Add regression tests for terminal and reusable-runtime paths.
+- [x] Separate terminal input/output concerns from assistant orchestration in `main.py`.
+- [x] Expose a reusable method for submitting messages to the single OS-level DARWIN session.
+- [x] Preserve the existing action context and safety policy.
+- [x] Make thinking, skill, response, and error states observable without relying on `print`.
+- [x] Route runtime activity events to the desktop neural core.
+- [x] Keep terminal text mode working.
+- [x] Add regression tests for terminal and reusable-runtime paths.
 
 **Done when:** The same single-session DARWIN runtime can serve terminal and OS clients without duplicated agent logic.
 
-### UI-030A — Add the OS transcript surface
+### UI-030A — Add the OS transcript surface ✅
 
 **Depends on:** UI-030, UI-031
 
-- [ ] Add a restrained transcript rail to the right side of the main OS workspace.
-- [ ] Show human and DARWIN messages in one continuous generalized session.
-- [ ] Keep the transcript available across app launches without turning it into an app window.
-- [ ] Stream partial DARWIN responses and display runtime status without chat-style visual clutter.
-- [ ] Provide keyboard and voice entry points into the same session.
-- [ ] Persist and restore the session according to the memory policy.
+- [x] Add a restrained transcript rail to the right side of the main OS workspace.
+- [x] Show human and DARWIN messages in one continuous generalized session.
+- [x] Keep the transcript available across app launches without turning it into an app window.
+- [x] Consume partial/final DARWIN responses and display runtime status without chat-style visual clutter.
+- [x] Provide keyboard and Python speech-to-text entry points into the same session.
+- [x] Persist and restore the local transcript view while backend memory remains authoritative.
 
 **Done when:** The user can converse with DARWIN from the OS itself and see both sides of the active session in the right-side transcript.
 
@@ -350,54 +405,58 @@ desktop boundary and the neural core renders each state without a separate app.
 
 **Depends on:** UI-030
 
-- [ ] Add a loopback-only FastAPI server.
-- [ ] Add `/health` with protocol and backend version information.
-- [ ] Add a WebSocket endpoint for versioned DARWIN messages.
-- [ ] Validate all incoming messages and cap message sizes.
-- [ ] Support session IDs and request correlation IDs.
-- [ ] Return structured errors rather than raw tracebacks.
-- [ ] Add API and WebSocket tests.
+- [x] Add a loopback-only FastAPI server.
+- [x] Add `/health` with protocol and backend version information.
+- [x] Add a WebSocket endpoint for versioned DARWIN messages.
+- [x] Validate all incoming messages and cap message sizes.
+- [x] Support session IDs and request correlation IDs.
+- [x] Return structured errors rather than raw tracebacks.
+- [x] Add API and WebSocket tests.
 
 **Done when:** A test client can connect, submit a message, observe states, receive the correlated answer, and recover from a malformed request.
 
-### UI-032 — Model assistant state events
+### UI-032 — Model assistant state events ✅
 
 **Depends on:** UI-031
 
-- [ ] Emit connected, idle, listening, transcribing, thinking, speaking, and error states.
-- [ ] Emit partial/final response events if supported by the current runtime.
-- [ ] Convert safety confirmation requests into structured UI events.
-- [ ] Accept confirmation or rejection responses from the authorized client.
-- [ ] Define cancellation and timeout behavior.
-- [ ] Test success, failure, cancellation, and confirmation flows.
+- [x] Emit connected, idle, listening, transcribing, thinking, speaking, and error states.
+- [x] Emit final response events and accept partial response events when streaming is added.
+- [x] Convert safety confirmation requests into structured UI events.
+- [x] Accept confirmation or rejection responses from the authorized client.
+- [x] Define cancellation and fail-closed confirmation timeout behavior.
+- [x] Test success, failure, cancellation, voice, timeout, and confirmation flows.
 
 **Done when:** The UI never needs to infer assistant state by parsing natural-language output.
 
-### UI-033 — Build the Assistant app
+### UI-033 — Build the assistant interaction surface ✅ Adapted
 
 **Depends on:** UI-021, UI-032
 
-- [ ] Add conversation history and text composer.
-- [ ] Display connection and assistant activity states.
-- [ ] Correlate pending user messages with responses.
-- [ ] Render structured errors and retry controls.
-- [ ] Render safety confirmations with clear action and risk information.
-- [ ] Support confirmation, rejection, and timeout.
-- [ ] Preserve a local conversation view across app minimize/restore.
+- [x] Add conversation history and text composer to the OS transcript rail.
+- [x] Display connection and assistant activity states.
+- [x] Correlate pending user messages with responses.
+- [x] Render structured errors and retry controls.
+- [x] Render safety confirmations with clear action and risk information.
+- [x] Support confirmation, rejection, and timeout.
+- [x] Preserve the conversation across app activity and DARWIN restarts.
 
-**Done when:** The user can complete a text conversation and safely approve/reject an action entirely through the DARWIN UI.
+**Architecture note:** Per the approved OS design, this is not a separate Assistant
+app. General conversation lives in the persistent transcript rail. A future Agent
+app remains reserved for isolated project work.
 
-### UI-034 — Manage the Python process from Electron
+**Done when:** The user can complete a text or voice conversation and safely approve/reject an action entirely through the DARWIN OS surface.
+
+### UI-034 — Manage the Python process from Electron ✅
 
 **Depends on:** UI-031, UI-033
 
-- [ ] Start the backend on an available loopback port in development/packaged modes.
-- [ ] Authenticate the local UI-to-backend connection with an ephemeral secret.
-- [ ] Detect backend readiness before connecting.
-- [ ] Display startup failure and reconnect states.
-- [ ] Restart after an unexpected backend crash with a bounded retry policy.
-- [ ] Shut down the child process when DARWIN exits.
-- [ ] Verify no orphan process remains after normal exit or UI crash recovery.
+- [x] Start the backend on an available loopback port with development and packaged-resource resolution.
+- [x] Authenticate health and WebSocket connections with an ephemeral secret.
+- [x] Detect backend readiness before connecting.
+- [x] Display startup failure and reconnect states.
+- [x] Restart after an unexpected backend crash with a bounded retry policy.
+- [x] Shut down the child process when DARWIN exits.
+- [x] Keep the backend owned during renderer recovery and terminate it on normal window shutdown.
 
 **Done when:** DARWIN owns the complete backend lifecycle and communicates only through an authenticated local connection.
 
@@ -645,6 +704,11 @@ Add entries whenever a material choice changes.
 | 2026-09-10 | Make DARWIN intelligence an OS-level service, not an Assistant app. | General commands, transcription, reasoning, and responses belong to the shell's single continuous session. | The neural core and right-side transcript are persistent shell surfaces; a future Agent app is reserved for isolated project work. |
 | 2026-09-10 | Preserve the current internal edge overlay as visual checkpoint `overlay-v1`. | The current theme-matched, inward-only dissolve is approved as the recovery baseline before reintroducing pointer clearing. | Pointer interaction may alter only the overlay mask; its gradients, color, shadow, clipping, and width baseline remain recoverable from the checkpoint record. |
 | 2026-09-10 | Introduce Python integration as a narrow state-only child service before FastAPI and conversation wiring. | Listening and speaking visuals need a real process boundary, but the user explicitly deferred the full assistant stack. | UI-029 uses authenticated structured standard I/O; UI-030 and UI-031 still own reusable orchestration and FastAPI/WebSocket work. |
+| 2026-09-12 | Run Camera object detection through a bounded local Python worker. | YOLO/OpenCV should add perception without sending camera frames to a remote service or allowing inference latency to accumulate. | Electron owns a lazy worker; Camera sends one downscaled frame at a time and renders only validated metadata. |
+| 2026-09-12 | Extract one synchronous, observable assistant runtime before adding the local API. | Terminal and OS clients need the same orchestration, session memory, safety context, and activity semantics without parsing console output. | `AssistantRuntime` serializes one session, returns correlated results, and emits typed state, skill, response, and error events; `main.py` is now a terminal client. |
+| 2026-09-12 | Expose the reusable runtime through a loopback-only versioned FastAPI/WebSocket boundary. | The desktop needs structured, correlated assistant traffic without importing Python intelligence into Electron. | `/health` exposes compatibility data; `/ws` validates a 64-KiB-capped protocol and returns safe errors. Authentication and Electron-owned lifecycle remain UI-034 work. |
+| 2026-09-12 | Replace the placeholder Assistant app with a persistent OS transcript rail. | General conversation is part of DARWIN itself, while future project work belongs in a separate Agent app. | Text, local voice transcription, status, cancellation, retry, and confirmations remain available across app launches in one desktop session. |
+| 2026-09-12 | Make Electron own the authenticated assistant service lifecycle. | Users should launch one DARWIN process without managing ports, secrets, or backend terminals. | Electron selects a loopback port, generates an ephemeral token, waits for readiness, reconnects with bounded retries, and terminates the child on shutdown. |
 
 ## Progress summary
 
@@ -652,6 +716,9 @@ Add entries whenever a material choice changes.
 - **Current phase:** Phase 3 — Python service and assistant UI
 - **Completed tasks:** UI-001, UI-002, UI-003, UI-010, UI-011, UI-012, UI-013, UI-014, UI-020, UI-021, UI-022, UI-023
 - **Glitchy prototype:** UI-024 (YouTube); usable, with polish deferred
-- **Completed state slice:** UI-029; Python-owned idle/listening/speaking events now drive the OS neural core
-- **Next task:** Visually approve UI-029, then begin the reusable runtime in UI-030
+- **Completed runtime work:** UI-029 through UI-034, with UI-033 adapted to the approved OS-level transcript instead of a separate Assistant app
+- **Camera vision:** UI-027 implementation complete; live visual acceptance remains
+- **Calendar:** UI-028 implementation complete; live Outlook sync and visual acceptance remain
+- **Mail tasks:** UI-028A implementation complete; live Apple Mail permission and approval validation remain
+- **Next task:** Validate UI-028 on the target Mac, then UI-040 — normalize mouse and keyboard behavior through the unified input router
 - **Milestone status:** In progress

@@ -21,6 +21,30 @@ describe('DARWIN desktop shell', () => {
         }
       }
     })
+    Object.defineProperty(window, 'darwinAssistantSession', {
+      configurable: true,
+      value: {
+        getStatus: async () => ({
+          status: 'connected',
+          connected: true,
+          sessionId: 'desktop-test'
+        }),
+        submit: async (requestId: string) => ({ ok: true, requestId }),
+        listen: async (requestId: string) => ({ ok: true, requestId }),
+        cancel: async () => ({ ok: true }),
+        confirm: async () => ({ ok: true }),
+        subscribeEvents: () => 'events',
+        subscribeStatus: (listener: (event: unknown) => void) => {
+          listener({
+            status: 'connected',
+            connected: true,
+            sessionId: 'desktop-test'
+          })
+          return 'status'
+        },
+        unsubscribe: () => undefined
+      }
+    })
   })
 
   it('renders the status bar, workspace, and dock', () => {
@@ -50,33 +74,42 @@ describe('DARWIN desktop shell', () => {
       screen.queryByRole('article', { name: 'Settings window' })
     ).not.toBeInTheDocument()
     expect(screen.queryByRole('dialog', { name: 'Applications' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('complementary', { name: 'DARWIN conversation' })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('complementary', { name: 'Computer performance' })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('complementary', { name: "Today's calendar" })
+    ).not.toBeInTheDocument()
   })
 
   it('supports the visible window lifecycle', () => {
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open Assistant' }))
-    expect(screen.getByRole('article', { name: 'Assistant window' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Open Reminders' }))
+    expect(screen.getByRole('article', { name: 'Reminders window' })).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Minimize Assistant' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Minimize Reminders' }))
     expect(
-      screen.queryByRole('article', { name: 'Assistant window' })
+      screen.queryByRole('article', { name: 'Reminders window' })
     ).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open Assistant' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Maximize Assistant' }))
-    expect(screen.getByRole('button', { name: 'Restore Assistant' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Open Reminders' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Maximize Reminders' }))
+    expect(screen.getByRole('button', { name: 'Restore Reminders' })).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close Assistant' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Close Reminders' }))
     expect(
-      screen.queryByRole('article', { name: 'Assistant window' })
+      screen.queryByRole('article', { name: 'Reminders window' })
     ).not.toBeInTheDocument()
   })
 
   it('moves a normal window using its title bar', () => {
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open Assistant' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open Reminders' }))
     const titlebar = screen
-      .getByRole('article', { name: 'Assistant window' })
+      .getByRole('article', { name: 'Reminders window' })
       .querySelector('.window-frame__titlebar')
     expect(titlebar).not.toBeNull()
 
@@ -99,42 +132,41 @@ describe('DARWIN desktop shell', () => {
     expect(screen.queryByRole('dialog', { name: 'Applications' })).not.toBeInTheDocument()
   })
 
-  it('opens Assistant with its shell shortcut', () => {
+  it('focuses the OS transcript with its shell shortcut', () => {
     render(<App />)
     fireEvent.keyDown(window, { code: 'KeyA', metaKey: true, shiftKey: true })
-    expect(screen.getByRole('article', { name: 'Assistant window' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Message DARWIN' })).toHaveFocus()
   })
 
   it('cycles focus through open windows in both directions', () => {
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open Assistant' }))
-    const assistantId = useWindowStore.getState().focusedWindowId
+    fireEvent.click(screen.getByRole('button', { name: 'Open Reminders' }))
+    const remindersId = useWindowStore.getState().focusedWindowId
     fireEvent.click(screen.getByRole('button', { name: 'Open YouTube' }))
     const youtubeId = useWindowStore.getState().focusedWindowId
 
     fireEvent.keyDown(window, { code: 'Tab', ctrlKey: true })
-    expect(useWindowStore.getState().focusedWindowId).toBe(assistantId)
+    expect(useWindowStore.getState().focusedWindowId).toBe(remindersId)
     fireEvent.keyDown(window, { code: 'Tab', ctrlKey: true, shiftKey: true })
     expect(useWindowStore.getState().focusedWindowId).toBe(youtubeId)
   })
 
   it('uses Escape to restore a maximized window without closing it', () => {
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open Assistant' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Maximize Assistant' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open Reminders' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Maximize Reminders' }))
     fireEvent.keyDown(window, { key: 'Escape' })
-    expect(screen.getByRole('button', { name: 'Maximize Assistant' })).toBeInTheDocument()
-    expect(screen.getByRole('article', { name: 'Assistant window' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Maximize Reminders' })).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: 'Reminders window' })).toBeInTheDocument()
   })
 
   it('does not capture shell shortcuts from editable fields', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: 'Open app launcher' }))
     const search = screen.getByRole('textbox', { name: 'Search applications' })
+    search.focus()
     fireEvent.keyDown(search, { code: 'KeyA', metaKey: true, shiftKey: true })
-    expect(
-      screen.queryByRole('article', { name: 'Assistant window' })
-    ).not.toBeInTheDocument()
+    expect(search).toHaveFocus()
   })
 
   it('switches between dark and projector-black themes', () => {

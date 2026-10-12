@@ -1,0 +1,308 @@
+{
+  "name": "DARWIN production RAG regression",
+  "quality_gates": {
+    "execution_success_min_percent": 100,
+    "retrieval_source_recall_min_percent": 90,
+    "retrieval_answerability_min_percent": 90,
+    "strategy_accuracy_min_percent": 95,
+    "answer_accuracy_min_percent": 85,
+    "answer_completeness_min_percent": 90,
+    "citation_recall_min_percent": 90,
+    "no_answer_rejection_min_percent": 100,
+    "false_abstention_max_percent": 10,
+    "latency_budget_pass_min_percent": 95,
+    "p95_latency_max_seconds": 30
+  },
+  "cases": [
+    {
+      "case_id": "paper-attribution",
+      "question": "Who introduced retrieval-augmented generation?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [
+        ["Patrick Lewis"],
+        ["Ethan Perez"]
+      ],
+      "expected_strategy": "decompose",
+      "maximum_latency_seconds": 15,
+      "tags": ["pdf", "attribution", "multi-evidence"]
+    },
+    {
+      "case_id": "paper-memory",
+      "question": "What non-parametric memory does RAG use?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [
+        ["dense vector index"],
+        ["Wikipedia"]
+      ],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 10,
+      "tags": ["pdf", "factual", "architecture"]
+    },
+    {
+      "case_id": "paper-hot-swap",
+      "question": "What advantage does RAG index hot-swapping provide?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [
+        ["update", "updated", "refresh", "refreshed", "replacing the retrieval index"],
+        ["test time", "at inference", "at inference time", "at query time", "on the fly"],
+        ["without retraining", "without further training", "need further training", "without any additional training", "no additional training"]
+      ],
+      "forbidden_terms": ["cannot be updated"],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 10,
+      "tags": ["pdf", "factual", "paraphrase"]
+    },
+    {
+      "case_id": "paper-rag-variants",
+      "question": "Compare RAG-Token and RAG-Sequence.",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [
+        ["RAG-Token"],
+        ["different document for each target token", "different document per token", "change documents for each token"],
+        ["RAG-Sequence"],
+        ["same document to predict each target token", "same document for the sequence", "same document for every token", "conditioned on one document", "generated from a single document", "one document per generated sequence"]
+      ],
+      "expected_strategy": "decompose",
+      "maximum_latency_seconds": 15,
+      "tags": ["pdf", "comparison", "completeness"]
+    },
+    {
+      "case_id": "paper-document-encoder",
+      "question": "Why did the RAG authors keep the document encoder fixed during training?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [
+        ["costly", "expensive"],
+        ["index", "periodically updated"],
+        ["not necessary", "unnecessary", "strong performance"]
+      ],
+      "expected_strategy": "step_back",
+      "maximum_latency_seconds": 15,
+      "tags": ["pdf", "reasoning", "step-back"]
+    },
+    {
+      "case_id": "paper-index-scale",
+      "question": "How was the Wikipedia retrieval index constructed for the RAG experiments?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [
+        ["December 2018"],
+        ["100-word chunks", "100 word chunks"],
+        ["21M", "21 million"],
+        ["FAISS"],
+        ["HNSW", "Hierarchical Navigable Small World"]
+      ],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 15,
+      "tags": ["pdf", "multi-fact", "completeness"]
+    },
+    {
+      "case_id": "paper-parameter-count",
+      "question": "How many trainable parameters do the RAG models contain?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [["626M", "626 million"]],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 10,
+      "tags": ["pdf", "numeric"]
+    },
+    {
+      "case_id": "paper-hallucination",
+      "question": "Why can retrieved external evidence reduce hallucination?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [
+        ["grounded", "grounding"],
+        ["factual knowledge", "more factual"],
+        ["hallucinate less", "reduce hallucination"]
+      ],
+      "required_citation_source_suffixes": ["rag-paper.pdf"],
+      "expected_strategy": "step_back",
+      "maximum_latency_seconds": 15,
+      "tags": ["pdf", "reasoning", "source-quality"]
+    },
+    {
+      "case_id": "paper-jeopardy",
+      "question": "Which RAG variant performed better on Jeopardy question generation, and why might it help?",
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [
+        ["RAG-Token"],
+        ["better", "outperform"],
+        ["several documents", "multiple documents", "combine content"]
+      ],
+      "expected_strategy": "decompose",
+      "maximum_latency_seconds": 15,
+      "tags": ["pdf", "reasoning", "multi-fact"]
+    },
+    {
+      "case_id": "plan-pdf-parser",
+      "question": "Which parser should DARWIN primarily use for PDF files?",
+      "should_answer": true,
+      "expected_source_suffixes": ["action-plan/rag/README.md"],
+      "required_term_groups": [["Docling"]],
+      "forbidden_terms": ["LlamaParse as the primary parser"],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 10,
+      "tags": ["markdown", "policy"]
+    },
+    {
+      "case_id": "plan-assisted-parser",
+      "question": "When should DARWIN use LLM-assisted document parsing?",
+      "should_answer": true,
+      "expected_source_suffixes": ["action-plan/rag/README.md"],
+      "required_term_groups": [
+        ["normal parser", "deterministic parser"],
+        ["broken reading order", "low OCR confidence", "complex tables", "handwriting"],
+        ["validated", "validation"]
+      ],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 15,
+      "tags": ["markdown", "policy", "multi-fact"]
+    },
+    {
+      "case_id": "plan-graph-policy",
+      "question": "When should graph retrieval be added to DARWIN RAG?",
+      "should_answer": true,
+      "expected_source_suffixes": ["action-plan/rag/README.md"],
+      "required_term_groups": [
+        ["relationship"],
+        ["vector and lexical", "vector and keyword"],
+        ["failures", "cannot reliably answer"]
+      ],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 10,
+      "tags": ["markdown", "policy"]
+    },
+    {
+      "case_id": "plan-correction-limit",
+      "question": "How many corrective retrieval passes are allowed in the first RAG version?",
+      "should_answer": true,
+      "expected_source_suffixes": ["action-plan/rag/README.md"],
+      "required_term_groups": [["one", "1"]],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 10,
+      "tags": ["markdown", "policy", "numeric"]
+    },
+    {
+      "case_id": "invoice-details",
+      "question": "What is the invoice number and when is payment due?",
+      "should_answer": true,
+      "expected_source_suffixes": ["invoice.png"],
+      "required_term_groups": [
+        ["DARWIN-2048"],
+        ["September 30, 2026"]
+      ],
+      "expected_strategy": "decompose",
+      "maximum_latency_seconds": 15,
+      "tags": ["image", "ocr", "multi-part"]
+    },
+    {
+      "case_id": "invoice-amount",
+      "question": "What is the invoice total amount?",
+      "should_answer": true,
+      "expected_source_suffixes": ["invoice.png"],
+      "required_term_groups": [["$475.25", "475.25"]],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 10,
+      "tags": ["image", "ocr", "currency"]
+    },
+    {
+      "case_id": "sales-east-total",
+      "question": "What is the total Revenue for the East region?",
+      "should_answer": true,
+      "expected_source_suffixes": ["sales.md"],
+      "required_term_groups": [["2700.5", "2,700.50"]],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 5,
+      "tags": ["table", "structured", "aggregation"]
+    },
+    {
+      "case_id": "sales-west-total",
+      "question": "What is the total Revenue for the West region?",
+      "should_answer": true,
+      "expected_source_suffixes": ["sales.md"],
+      "required_term_groups": [["900", "900.00"]],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 5,
+      "tags": ["table", "structured", "aggregation"]
+    },
+    {
+      "case_id": "cross-document-architecture",
+      "question": "Which parser should DARWIN use for PDFs, and what non-parametric memory does RAG use?",
+      "should_answer": true,
+      "expected_source_suffixes": [
+        "action-plan/rag/README.md",
+        "rag-paper.pdf"
+      ],
+      "required_citation_source_suffixes": [
+        "action-plan/rag/README.md",
+        "rag-paper.pdf"
+      ],
+      "required_term_groups": [
+        ["Docling"],
+        ["dense vector index"],
+        ["Wikipedia"]
+      ],
+      "expected_strategy": "decompose",
+      "maximum_latency_seconds": 20,
+      "tags": ["cross-document", "multi-part", "citation-recall"]
+    },
+    {
+      "case_id": "conversation-memory",
+      "question": "What about its non-parametric memory?",
+      "conversation_context": [
+        "We are discussing retrieval-augmented generation from the RAG paper."
+      ],
+      "should_answer": true,
+      "expected_source_suffixes": ["rag-paper.pdf"],
+      "required_term_groups": [
+        ["dense vector index"],
+        ["Wikipedia"]
+      ],
+      "expected_strategy": "conversation",
+      "maximum_latency_seconds": 20,
+      "tags": ["conversation", "reference-resolution"]
+    },
+    {
+      "case_id": "missing-password",
+      "question": "What is DARWIN's administrator password?",
+      "should_answer": false,
+      "expected_source_suffixes": [],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 5,
+      "tags": ["no-answer", "security"]
+    },
+    {
+      "case_id": "missing-invoice-tax",
+      "question": "How much tax was charged on invoice DARWIN-2048?",
+      "should_answer": false,
+      "expected_source_suffixes": [],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 10,
+      "tags": ["no-answer", "near-miss"]
+    },
+    {
+      "case_id": "missing-sales-region",
+      "question": "What is the total Revenue for the North region?",
+      "should_answer": false,
+      "expected_source_suffixes": [],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 5,
+      "tags": ["no-answer", "structured", "near-miss"]
+    },
+    {
+      "case_id": "missing-clinical-trial",
+      "question": "Which clinical trial proved that DARWIN cures migraines?",
+      "should_answer": false,
+      "expected_source_suffixes": [],
+      "expected_strategy": "direct",
+      "maximum_latency_seconds": 5,
+      "tags": ["no-answer", "hallucination"]
+    }
+  ]
+}

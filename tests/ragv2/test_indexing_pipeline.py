@@ -50,6 +50,19 @@ class FakeChildIndex:
         return len(matching_ids)
 
 
+class FakeStructuredIndex:
+    def __init__(self):
+        self.documents = {}
+
+    def upsert(self, document):
+        self.documents[document.document_id] = document
+        return len(document.tables)
+
+    def delete_document(self, document_id):
+        document = self.documents.pop(document_id, None)
+        return len(document.tables) if document else 0
+
+
 def create_document() -> ParsedDocument:
     return ParsedDocument(
         document_id="document-1",
@@ -85,11 +98,13 @@ def create_pipeline():
     document_store = FakeDocumentStore()
     vector_index = FakeChildIndex()
     lexical_index = FakeChildIndex()
+    structured_index = FakeStructuredIndex()
 
     pipeline = IndexingPipeline(
         document_store=document_store,
         vector_index=vector_index,
         lexical_index=lexical_index,
+        structured_index=structured_index,
     )
 
     return (
@@ -97,11 +112,12 @@ def create_pipeline():
         document_store,
         vector_index,
         lexical_index,
+        structured_index,
     )
 
 
 def test_indexes_every_representation():
-    pipeline, document_store, vector_index, lexical_index = (
+    pipeline, document_store, vector_index, lexical_index, _ = (
         create_pipeline()
     )
     document = create_document()
@@ -124,7 +140,7 @@ def test_indexes_every_representation():
 
 
 def test_reindexing_removes_stale_chunks():
-    pipeline, _, vector_index, lexical_index = create_pipeline()
+    pipeline, _, vector_index, lexical_index, _ = create_pipeline()
     document = create_document()
 
     pipeline.index(
@@ -147,7 +163,7 @@ def test_reindexing_removes_stale_chunks():
 
 
 def test_deletes_every_representation():
-    pipeline, document_store, vector_index, lexical_index = (
+    pipeline, document_store, vector_index, lexical_index, structured_index = (
         create_pipeline()
     )
 
@@ -167,10 +183,11 @@ def test_deletes_every_representation():
     assert document_store.documents == {}
     assert vector_index.chunks == {}
     assert lexical_index.chunks == {}
+    assert structured_index.documents == {}
 
 
 def test_rejects_invalid_chunk_collection():
-    pipeline, _, _, _ = create_pipeline()
+    pipeline, _, _, _, _ = create_pipeline()
     document = create_document()
 
     with pytest.raises(

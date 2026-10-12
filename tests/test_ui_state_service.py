@@ -9,7 +9,13 @@ from uuid import uuid4
 
 from app.protocol.schemas import PROTOCOL_VERSION, server_message_adapter
 from app.services import ui_activity
-from app.services.ui_state import StateCommand, audio_level_message, state_message
+from app.services.ui_state import (
+    StateCommand,
+    audio_level_message,
+    skill_activity_message,
+    state_message,
+    voice_playback_message,
+)
 
 
 def test_state_message_uses_the_shared_wire_contract() -> None:
@@ -34,6 +40,24 @@ def test_audio_level_message_uses_the_shared_wire_contract() -> None:
 
     assert parsed.type == "assistant.audio-level"
     assert parsed.level == 0.72
+
+
+def test_voice_playback_message_uses_the_shared_wire_contract() -> None:
+    parsed = server_message_adapter.validate_python(voice_playback_message(True))
+
+    assert parsed.type == "assistant.voice-playback"
+    assert parsed.active is True
+
+
+def test_skill_activity_uses_the_shared_wire_contract() -> None:
+    request_id = str(uuid4())
+    parsed = server_message_adapter.validate_python(
+        skill_activity_message("weather", "started", request_id)
+    )
+
+    assert parsed.type == "assistant.activity"
+    assert parsed.skill == "weather"
+    assert parsed.phase == "started"
 
 
 def short_socket_path() -> Path:
@@ -75,6 +99,10 @@ def test_state_service_forwards_real_voice_activity(monkeypatch) -> None:
         assert json.loads(process.stdout.readline())["state"] == "listening"
         assert ui_activity.publish_ui_audio_level(0.64) is True
         assert json.loads(process.stdout.readline())["level"] == 0.64
+        assert ui_activity.publish_ui_voice_playback(True) is True
+        playback = json.loads(process.stdout.readline())
+        assert playback["type"] == "assistant.voice-playback"
+        assert playback["active"] is True
     finally:
         if process.stdin is not None:
             process.stdin.close()

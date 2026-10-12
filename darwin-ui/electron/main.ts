@@ -4,6 +4,11 @@ import { registerCredentialHandlers } from './credentials.js'
 import { registerWebAppHandlers } from './webApps.js'
 import { registerReminderHandlers } from './reminders.js'
 import { registerAssistantStateService } from './assistantState.js'
+import { registerVisionHandlers } from './vision.js'
+import { registerAssistantBackend } from './assistantBackend.js'
+import { registerSystemStats } from './systemStats.js'
+import { registerCalendarHandlers } from './calendar.js'
+import { registerTaskHandlers } from './tasks.js'
 
 const isAllowedExternalUrl = (url: string): boolean => {
   try {
@@ -30,8 +35,18 @@ const createMainWindow = (): BrowserWindow => {
       sandbox: false
     }
   })
-  registerWebAppHandlers(window)
-  registerAssistantStateService(window)
+  const webApps = registerWebAppHandlers(window)
+  registerAssistantStateService(
+    window,
+    (state) => {
+      if (state !== 'speaking') webApps.setVoicePlaybackActive(false)
+    },
+    (active) => webApps.setVoicePlaybackActive(active)
+  )
+  registerVisionHandlers(window)
+  registerAssistantBackend(window)
+  registerSystemStats(window)
+  registerTaskHandlers(window)
 
   window.webContents.on('preload-error', (_event, preloadPath, error) => {
     console.error(`DARWIN preload failed: ${preloadPath}`, error)
@@ -71,6 +86,7 @@ app.whenReady().then(() => {
   )
   registerCredentialHandlers()
   registerReminderHandlers()
+  registerCalendarHandlers()
   createMainWindow()
 
   app.on('activate', () => {

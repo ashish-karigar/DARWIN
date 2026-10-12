@@ -27,6 +27,11 @@ class QueryStrategy(StrEnum):
     DECOMPOSE = "decompose"
     STEP_BACK = "step_back"
 
+class EvidenceStatus(StrEnum):
+    SUFFICIENT = "sufficient"
+    PARTIAL = "partial"
+    IRRELEVANT = "irrelevant"
+
 class Contract(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -78,7 +83,7 @@ class ParsedDocument(Contract):
     sections: tuple[DocumentSection, ...] = ()
     tables: tuple[DocumentTable, ...] = ()
     images: tuple[DocumentImage, ...] = ()
-    metadata: dict[str, Any] = {}
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_content(self) -> "ParsedDocument":
@@ -105,7 +110,7 @@ class Chunk(Contract):
     end_offset: int | None = Field(default=None, ge=0)
     token_count: int = Field(ge=1)
 
-    metadata: dict[str, Any] = {}
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_offsets(self) -> "Chunk":
@@ -189,6 +194,7 @@ class ContextItem(Contract):
     heading_path: tuple[str, ...] = ()
 
     supporting_chunk_ids: tuple[str, ...]
+    information_needs: tuple[str, ...] = ()
     relevance_score: float = Field(ge=0.0, le=1.0)
     directly_answers: bool
     expanded_from_parent: bool
@@ -221,6 +227,9 @@ class GroundedAnswer(Contract):
     is_grounded: bool
     abstained: bool
     unsupported_claims: tuple[str, ...] = ()
+    answered_queries: tuple[str, ...] = ()
+    unanswered_queries: tuple[str, ...] = ()
+    confidence_reason: str = ""
 
     @model_validator(mode="after")
     def validate_grounding(self) -> "GroundedAnswer":
@@ -235,3 +244,43 @@ class GroundedAnswer(Contract):
             )
 
         return self
+
+
+class ClaimCheck(Contract):
+    claim: str = Field(min_length=1)
+    citation_ids: tuple[str, ...] = ()
+    support_score: float = Field(ge=0.0, le=1.0)
+    supported: bool
+    contradicted: bool
+    reason: str = Field(min_length=1)
+
+
+class VerificationResult(Contract):
+    claim_checks: tuple[ClaimCheck, ...]
+    is_supported: bool
+    unsupported_claims: tuple[str, ...] = ()
+    contradicted_claims: tuple[str, ...] = ()
+    confidence_reason: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_result(self) -> "VerificationResult":
+        if (
+            self.is_supported
+            and (
+                self.unsupported_claims
+                or self.contradicted_claims
+            )
+        ):
+            raise ValueError(
+                "A supported verification cannot contain "
+                "unsupported or contradicted claims."
+            )
+
+        return self
+
+
+class WebSearchResult(Contract):
+    title: str = Field(min_length=1)
+    url: str = Field(min_length=1)
+    text: str = Field(min_length=1)
+    score: float = Field(default=0.5, ge=0.0, le=1.0)

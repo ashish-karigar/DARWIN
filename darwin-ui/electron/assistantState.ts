@@ -24,6 +24,21 @@ const serviceMessageSchema = z.discriminatedUnion('type', [
     protocolVersion: z.literal('1.0'),
     type: z.literal('assistant.audio-level'),
     level: z.number().min(0).max(1)
+  }),
+  z.object({
+    protocolVersion: z.literal('1.0'),
+    type: z.literal('assistant.voice-playback'),
+    active: z.boolean()
+  }),
+  z.object({
+    protocolVersion: z.literal('1.0'),
+    type: z.literal('assistant.activity'),
+    requestId: z.string().uuid(),
+    skill: z
+      .string()
+      .regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/)
+      .max(80),
+    phase: z.enum(['started', 'completed', 'failed'])
   })
 ])
 
@@ -41,9 +56,17 @@ export class AssistantStateService {
   #connected = false
   #stderr = ''
   #stopping = false
+  readonly #onStateChange?: (state: AssistantState) => void
+  readonly #onVoicePlaybackChange?: (active: boolean) => void
 
-  constructor(window: BrowserWindow) {
+  constructor(
+    window: BrowserWindow,
+    onStateChange?: (state: AssistantState) => void,
+    onVoicePlaybackChange?: (active: boolean) => void
+  ) {
     this.#window = window
+    this.#onStateChange = onStateChange
+    this.#onVoicePlaybackChange = onVoicePlaybackChange
   }
 
   start() {
@@ -112,7 +135,11 @@ export class AssistantStateService {
       try {
         const message = serviceMessageSchema.parse(JSON.parse(line) as unknown)
         if (message.type === 'assistant.state') this.#publish(message.state, true)
-        else this.#publishAudioLevel(message.level)
+        else if (message.type === 'assistant.audio-level')
+          this.#publishAudioLevel(message.level)
+        else if (message.type === 'assistant.voice-playback')
+          this.#onVoicePlaybackChange?.(message.active)
+        else this.#publishActivity(message)
       } catch {
         // The renderer only receives validated state messages.
       }
@@ -122,6 +149,7 @@ export class AssistantStateService {
   #publish(state: AssistantState, connected = this.#connected) {
     this.#state = state
     this.#connected = connected
+    this.#onStateChange?.(state)
     if (this.#window.isDestroyed() || this.#window.webContents.isDestroyed()) return
     this.#window.webContents.send('assistant:state', {
       state,
@@ -135,6 +163,18 @@ export class AssistantStateService {
     if (this.#window.isDestroyed() || this.#window.webContents.isDestroyed()) return
     this.#window.webContents.send('assistant:state', {
       audioLevel,
+      source: createHash('sha256').update(this.#token).digest('hex').slice(0, 12)
+    })
+  }
+
+  #publishActivity(activity: {
+    requestId: string
+    skill: string
+    phase: 'started' | 'completed' | 'failed'
+  }) {
+    if (this.#window.isDestroyed() || this.#window.webContents.isDestroyed()) return
+    this.#window.webContents.send('assistant:state', {
+      activity,
       source: createHash('sha256').update(this.#token).digest('hex').slice(0, 12)
     })
   }
@@ -155,10 +195,14 @@ export class AssistantStateService {
   }
 }
 
-export const registerAssistantStateService = (window: BrowserWindow) => {
+export const registerAssistantStateService = (
+  window: BrowserWindow,
+  onStateChange?: (state: AssistantState) => void,
+  onVoicePlaybackChange?: (active: boolean) => void
+) => {
   ipcMain.removeHandler('assistant:preview-state')
   ipcMain.removeHandler('assistant:get-state')
-  const service = new AssistantStateService(window)
+  const service = new AssistantStateService(window, onStateChange, onVoicePlaybackChange)
   ipcMain.handle('assistant:preview-state', (_event, value) => {
     try {
       return service.preview(value)
