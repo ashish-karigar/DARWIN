@@ -1,0 +1,12 @@
+diff --git a/piper_train/vits/commons.py b/piper_train/vits/commons.py
+index 3f334c3..553a249 100644
+--- a/piper_train/vits/commons.py
++++ b/piper_train/vits/commons.py
+@@ -96,7 +96,6 @@ def subsequent_mask(length: int):
+     return mask
+ 
+ 
+-@torch.jit.script
+ def fused_add_tanh_sigmoid_multiply(input_a, input_b, n_channels):
+     n_channels_int = n_channels[0]
+     in_act = input_a + input_b

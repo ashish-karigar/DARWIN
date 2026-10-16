@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "dependencies": [
+    {
+      "name": "openWakeWord",
+      "group": "wakeword",
+      "url": "https://github.com/dscripka/openWakeWord.git",
+      "commit": "368c03716d1e92591906a84949bc477f3a834455",
+      "destination": "training/wakeword/openWakeWord",
+      "patch": "third_party/patches/openwakeword-darwin.patch",
+      "purpose": "Custom DARWIN wake-word training"
+    },
+    {
+      "name": "piper-sample-generator",
+      "group": "wakeword",
+      "url": "https://github.com/rhasspy/piper-sample-generator.git",
+      "commit": "2971426a55072f7d22fec416ca7800df8bd23207",
+      "destination": "training/wakeword/piper-sample-generator",
+      "patch": "third_party/patches/piper-sample-generator-darwin.patch",
+      "purpose": "Synthetic positive samples for wake-word training"
+    },
+    {
+      "name": "CLAPNQ",
+      "group": "rag",
+      "url": "https://github.com/primeqa/clapnq.git",
+      "commit": "c508d78d8c5c2eecbf172fcf5f789004206e11fb",
+      "destination": "data/external/ragchecker/raw_data/clapnq",
+      "patch": null,
+      "purpose": "Optional long-form RAG benchmark dataset"
+    },
+    {
+      "name": "RAGChecker",
+      "group": "rag",
+      "url": "https://github.com/amazon-science/RAGChecker.git",
+      "commit": "6091f08c00e676e87a970f2aeb4a23a484746348",
+      "destination": "data/external/ragchecker/vendor/RAGChecker",
+      "patch": null,
+      "purpose": "Optional RAG benchmark metadata and reference assets"
+    }
+  ]
+}

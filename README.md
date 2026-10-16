@@ -182,6 +182,8 @@ DARWIN/
 │   ├── shared/                     # Typed protocol contracts
 │   └── src/                        # React desktop renderer
 ├── tests/                          # Backend and RAG test suites
+├── scripts/                        # Reproducible development setup utilities
+├── third_party/                    # Pinned external manifests and DARWIN patches
 ├── docs/                           # Protocol, voice, shortcuts, and baseline docs
 └── data/                           # Local runtime data, indexes, logs, and models
 ```
@@ -212,6 +214,54 @@ ollama pull qwen3:14b
 ollama pull qwen3:8b
 ollama pull nomic-embed-text
 ```
+
+### Optional training and benchmark workspaces
+
+DARWIN uses four third-party projects for development workflows, but their
+checkouts are not runtime dependencies and are intentionally excluded from the
+main repository:
+
+| Project | DARWIN usage | Required for normal runtime? |
+| --- | --- | --- |
+| `openWakeWord` | Trains the custom `Darwin` wake-word model | No; runtime uses the installed `openwakeword` package and exported ONNX model |
+| `piper-sample-generator` | Generates synthetic positive audio for wake-word training | No |
+| `CLAPNQ` | Supplies an optional long-form RAG benchmark dataset | No |
+| `RAGChecker` | Supplies benchmark metadata and reference assets; the installed `ragchecker` package performs scoring | No |
+
+Their upstream URLs, exact commit SHAs, destinations, and DARWIN patches are
+versioned in `third_party/dependencies.json`. The patches preserve the
+macOS/MPS, audio-resampling, recursive dataset discovery, ONNX export,
+checkpoint, and TorchScript compatibility changes used for DARWIN's existing
+wake-word training runs.
+
+Restore only the workspace needed for a development task:
+
+```bash
+# Custom wake-word training
+python scripts/setup_external_dependencies.py wakeword
+
+# Industry RAG benchmark preparation
+python scripts/setup_external_dependencies.py rag
+
+# Restore every optional workspace
+python scripts/setup_external_dependencies.py all
+```
+
+The setup script clones each project at its pinned detached commit and applies
+the corresponding DARWIN patch. It refuses to overwrite an existing directory.
+The restored directories remain ignored by DARWIN Git because they are external
+working data, not vendored application source.
+
+Wake-word training imports the restored openWakeWord checkout from
+`training/wakeword/openWakeWord` and the Piper adapter imports
+`training/wakeword/piper-sample-generator`. The trained model is exported into
+the local model workspace and the runtime expects the configured ONNX model,
+such as `data/models/openwakeword/darwin_media_v2.onnx`.
+
+RAG benchmark preparation reads CLAPNQ from
+`data/external/ragchecker/raw_data/clapnq` and RAGChecker metadata from
+`data/external/ragchecker/vendor/RAGChecker`. Benchmark indexes, runs, and
+reports are generated locally under `data/ragv2/industry_benchmarks/`.
 
 Create a `.env` file in the repository root. The minimal model configuration is:
 

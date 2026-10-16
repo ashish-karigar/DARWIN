@@ -1,0 +1,213 @@
+diff --git a/openwakeword/data.py b/openwakeword/data.py
+index 7a95306..33c273b 100755
+--- a/openwakeword/data.py
++++ b/openwakeword/data.py
+@@ -32,6 +32,19 @@ from numpy.lib.format import open_memmap
+ from speechbrain.dataio.dataio import read_audio
+ from speechbrain.processing.signal_processing import reverberate
+ import torchaudio
++import soundfile as sf
++from types import SimpleNamespace
++
++
++if not hasattr(torchaudio, "info"):
++    def _torchaudio_info(path):
++        metadata = sf.info(path)
++        return SimpleNamespace(
++            num_frames=metadata.frames,
++            sample_rate=metadata.samplerate,
++        )
++
++    torchaudio.info = _torchaudio_info
+ import mutagen
+ import acoustics
+ 
+@@ -673,11 +686,17 @@ def augment_clips(
+         for clip in batch:
+             clip_data, clip_sr = torchaudio.load(clip)
+             clip_data = clip_data[0]
+-            if clip_data.shape[0] > total_length:
+-                clip_data = clip_data[0:total_length]
+ 
+             if clip_sr != sr:
+-                raise ValueError("Error! Clip does not have the correct sample rate!")
++                clip_data = torchaudio.functional.resample(
++                    clip_data,
++                    orig_freq=clip_sr,
++                    new_freq=sr,
++                )
++                clip_sr = sr
++
++            if clip_data.shape[0] > total_length:
++                clip_data = clip_data[:total_length]
+ 
+             clip_data = create_fixed_size_clip(clip_data, total_length, clip_sr)
+ 
+diff --git a/openwakeword/train.py b/openwakeword/train.py
+index 708cdb2..4c0cfb4 100755
+--- a/openwakeword/train.py
++++ b/openwakeword/train.py
+@@ -31,7 +31,12 @@ class Model(nn.Module):
+         self.n_classes = n_classes
+         self.input_shape = input_shape
+         self.seconds_per_example = seconds_per_example
+-        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
++        if torch.cuda.is_available():
++            self.device = torch.device("cuda")
++        elif torch.backends.mps.is_available():
++            self.device = torch.device("mps")
++        else:
++            self.device = torch.device("cpu")
+         self.best_models = []
+         self.best_model_scores = []
+         self.best_val_fp = 1000
+@@ -423,11 +428,16 @@ class Model(nn.Module):
+             raise ValueError("Exporting models to both onnx and tflite with more than one class is currently not supported! "
+                              "Use the `export_to_onnx` function instead.")
+ 
+-        # Save ONNX model
+-        logging.info(f"####\nSaving ONNX mode as '{os.path.join(output_dir, model_name + '.onnx')}'")
+-        model_to_save = copy.deepcopy(model)
+-        torch.onnx.export(model_to_save.to("cpu"), torch.rand(self.input_shape)[None, ],
+-                          os.path.join(output_dir, model_name + ".onnx"), opset_version=13)
++        # Save ONNX model
++        logging.info(f"####\nSaving ONNX mode as '{os.path.join(output_dir, model_name + '.onnx')}'")
++        model_to_save = copy.deepcopy(model).to("cpu").eval()
++        torch.onnx.export(
++            model_to_save,
++            torch.rand(self.input_shape)[None, ],
++            os.path.join(output_dir, model_name + ".onnx"),
++            opset_version=18,
++            external_data=False,
++        )
+ 
+         return None
+ 
+@@ -603,38 +613,38 @@ if __name__ == '__main__':
+         required=True
+     )
+     parser.add_argument(
+-        "--generate_clips",
+-        help="Execute the synthetic data generation process",
+-        action="store_true",
+-        default="False",
++        "--generate_clips",
++        help="Execute the synthetic data generation process",
++        action="store_true",
++        default=False,
+         required=False
+     )
+     parser.add_argument(
+-        "--augment_clips",
+-        help="Execute the synthetic data augmentation process",
+-        action="store_true",
+-        default="False",
++        "--augment_clips",
++        help="Execute the synthetic data augmentation process",
++        action="store_true",
++        default=False,
+         required=False
+     )
+     parser.add_argument(
+-        "--overwrite",
+-        help="Overwrite existing openwakeword features when the --augment_clips flag is used",
+-        action="store_true",
+-        default="False",
++        "--overwrite",
++        help="Overwrite existing openwakeword features when the --augment_clips flag is used",
++        action="store_true",
++        default=False,
+         required=False
+     )
+     parser.add_argument(
+-        "--train_model",
+-        help="Execute the model training process",
+-        action="store_true",
+-        default="False",
++        "--train_model",
++        help="Execute the model training process",
++        action="store_true",
++        default=False,
+         required=False
+     )
+     parser.add_argument(
+-        "--convert_to_tflite",
+-        help="Convert the trained ONNX model to TFLite format",
+-        action="store_true",
+-        default="False",
++        "--convert_to_tflite",
++        help="Convert the trained ONNX model to TFLite format",
++        action="store_true",
++        default=False,
+         required=False
+     )
+ 
+@@ -659,12 +669,27 @@ if __name__ == '__main__':
+     feature_save_dir = os.path.join(config["output_dir"], config["model_name"])
+ 
+     # Get paths for impulse response and background audio files
+-    rir_paths = [i.path for j in config["rir_paths"] for i in os.scandir(j)]
++    rir_paths = [
++        str(file)
++        for directory in config["rir_paths"]
++        for file in Path(directory).rglob("*.wav")
++        if file.is_file()
++    ]
++
+     background_paths = []
+     if len(config["background_paths_duplication_rate"]) != len(config["background_paths"]):
+-        config["background_paths_duplication_rate"] = [1]*len(config["background_paths"])
+-    for background_path, duplication_rate in zip(config["background_paths"], config["background_paths_duplication_rate"]):
+-        background_paths.extend([i.path for i in os.scandir(background_path)]*duplication_rate)
++        config["background_paths_duplication_rate"] = [1] * len(config["background_paths"])
++
++    for directory, duplication_rate in zip(
++            config["background_paths"],
++            config["background_paths_duplication_rate"],
++    ):
++        files = [
++            str(file)
++            for file in Path(directory).rglob("*.wav")
++            if file.is_file()
++        ]
++        background_paths.extend(files * duplication_rate)
+ 
+     if args.generate_clips is True:
+         # Generate positive clips for training
+@@ -868,8 +893,11 @@ if __name__ == '__main__':
+             n_cpus = 1
+         else:
+             n_cpus = n_cpus//2
+-        X_train = torch.utils.data.DataLoader(IterDataset(batch_generator),
+-                                              batch_size=None, num_workers=n_cpus, prefetch_factor=16)
++            X_train = torch.utils.data.DataLoader(
++                IterDataset(batch_generator),
++                batch_size=None,
++                num_workers=0,
++            )
+ 
+         X_val_fp = np.load(config["false_positive_validation_data_path"])
+         X_val_fp = np.array([X_val_fp[i:i+input_shape[0]] for i in range(0, X_val_fp.shape[0]-input_shape[0], 1)])  # reshape to match model
+@@ -901,6 +929,22 @@ if __name__ == '__main__':
+             target_fp_per_hour=config["target_false_positives_per_hour"],
+         )
+ 
++        best_model = best_model.to("cpu").eval()
++        checkpoint_path = os.path.join(
++            config["output_dir"],
++            config["model_name"] + ".pt",
++        )
++        torch.save(
++            {
++                "model_state_dict": best_model.state_dict(),
++                "input_shape": tuple(input_shape),
++                "model_type": config["model_type"],
++                "layer_size": config["layer_size"],
++            },
++            checkpoint_path,
++        )
++        logging.info(f"Saved PyTorch checkpoint as '{checkpoint_path}'")
++
+         # Export the trained model to onnx
+         oww.export_model(model=best_model, model_name=config["model_name"], output_dir=config["output_dir"])
+ 
