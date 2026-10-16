@@ -28,4 +28,4 @@ export default tseslint.config(
       globals: globals.node
     }
   }
-);
+)
